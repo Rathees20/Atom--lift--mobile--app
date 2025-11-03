@@ -1,18 +1,4 @@
 import { StyleSheet, Platform, StatusBar, Dimensions } from 'react-native';
-import { 
-  responsiveWidth, 
-  responsiveHeight, 
-  responsiveFontSize, 
-  responsiveSize,
-  getSafeAreaInsets,
-  getTouchTargetSize,
-  getSpacing,
-  getBorderRadius,
-  getScreenDimensions
-} from '../utils/responsiveUtils';
-
-// Get screen dimensions
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Get status bar height for consistent header padding
 const getStatusBarHeight = (): number => {
@@ -24,7 +10,6 @@ const getStatusBarHeight = (): number => {
 };
 
 const HEADER_PADDING_TOP = getStatusBarHeight() + 10;
-const SAFE_AREA_INSETS = getSafeAreaInsets();
 
 export const globalStyles = StyleSheet.create({
   // Login Screen Styles
@@ -40,8 +25,8 @@ export const globalStyles = StyleSheet.create({
   loginContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: getSpacing(3.75),
-    paddingVertical: getSpacing(2),
+    paddingHorizontal: 30,
+    paddingVertical: 16,
     width: '100%',
     alignSelf: 'stretch',
   },
@@ -50,13 +35,13 @@ export const globalStyles = StyleSheet.create({
     marginBottom: 40,
   },
   loginTitle: {
-    fontSize: responsiveFontSize(32),
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#2c3e50',
-    marginBottom: getSpacing(1),
+    marginBottom: 8,
   },
   loginSubtitle: {
-    fontSize: responsiveFontSize(16),
+    fontSize: 16,
     color: '#7f8c8d',
   },
   loginForm: {
@@ -87,10 +72,10 @@ export const globalStyles = StyleSheet.create({
   },
   loginInput: {
     flex: 1,
-    fontSize: responsiveFontSize(16),
+    fontSize: 16,
     color: '#2c3e50',
-    paddingVertical: getSpacing(2),
-    minHeight: getTouchTargetSize(48),
+    paddingVertical: 16,
+    minHeight: 48,
   },
   loginEyeIcon: {
     padding: 4,
@@ -176,9 +161,9 @@ export const globalStyles = StyleSheet.create({
   },
   homeHeader: {
     backgroundColor: '#3498db',
-    paddingTop: SAFE_AREA_INSETS.top + getSpacing(1),
-    paddingBottom: getSpacing(2.5),
-    paddingHorizontal: getSpacing(2.5),
+    paddingTop: 52,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
   },
   homeHeaderBottom: {
     flexDirection: 'row',
@@ -186,9 +171,9 @@ export const globalStyles = StyleSheet.create({
   },
   homeContent: {
     flex: 1,
-    paddingHorizontal: getSpacing(2.5),
-    paddingTop: getSpacing(2.5),
-    paddingBottom: SAFE_AREA_INSETS.bottom + getSpacing(2),
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 50,
     width: '100%',
     alignSelf: 'stretch',
   },
@@ -203,11 +188,11 @@ export const globalStyles = StyleSheet.create({
   homeMenuCard: {
     width: '48%',
     backgroundColor: '#fff',
-    borderRadius: getBorderRadius(12),
-    padding: getSpacing(2.5),
+    borderRadius: 12,
+    padding: 20,
     alignItems: 'center',
-    marginBottom: getSpacing(2),
-    minHeight: getTouchTargetSize(120),
+    marginBottom: 16,
+    minHeight: 120,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -218,15 +203,15 @@ export const globalStyles = StyleSheet.create({
     elevation: 3,
   },
   homeIconContainer: {
-    width: responsiveSize(60),
-    height: responsiveSize(60),
-    borderRadius: responsiveSize(30),
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: getSpacing(1.5),
+    marginBottom: 12,
   },
   homeMenuTitle: {
-    fontSize: responsiveFontSize(16),
+    fontSize: 16,
     fontWeight: '600',
     color: '#2c3e50',
     textAlign: 'center',
@@ -238,11 +223,11 @@ export const globalStyles = StyleSheet.create({
   },
   homeActionButton: {
     backgroundColor: '#3498db',
-    borderRadius: getBorderRadius(12),
-    paddingVertical: getSpacing(2),
+    borderRadius: 12,
+    paddingVertical: 16,
     alignItems: 'center',
-    marginBottom: getSpacing(1.5),
-    minHeight: getTouchTargetSize(48),
+    marginBottom: 12,
+    minHeight: 48,
     width: '100%',
     alignSelf: 'stretch',
     shadowColor: '#3498db',
@@ -256,7 +241,7 @@ export const globalStyles = StyleSheet.create({
   },
   homeActionButtonText: {
     color: '#fff',
-    fontSize: responsiveFontSize(16),
+    fontSize: 16,
     fontWeight: '600',
   },
   homeStatusContainer: {
@@ -272,11 +257,19 @@ export const globalStyles = StyleSheet.create({
   },
   homeModalOverlay: {
     flex: 1,
-    flexDirection: 'row',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   homeDrawerContainer: {
-    flex: 1,
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: '85%',
     backgroundColor: '#fff',
     elevation: 5,
     shadowColor: '#000',
@@ -286,9 +279,16 @@ export const globalStyles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    zIndex: 1000,
   },
   homeModalBackdrop: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 999,
   },
 
   // Drawer Styles

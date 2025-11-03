@@ -236,11 +236,11 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
         </TouchableOpacity>
 
         {/* Developer Info */}
-        <View style={globalStyles.drawerDeveloperInfo}>
+        {/* <View style={globalStyles.drawerDeveloperInfo}>
           <Text style={globalStyles.drawerDeveloperText}>Designed & Developed By</Text>
           <Text style={globalStyles.drawerCompanyName}>Lionsol Infoway Pvt. Ltd.</Text>
           <Text style={globalStyles.drawerWebsite}>https://lionsol.in</Text>
-        </View>
+        </View> */}
       </ScrollView>
     </SafeAreaView>
   );
