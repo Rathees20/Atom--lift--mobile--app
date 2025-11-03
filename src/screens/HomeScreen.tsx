@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
-  Dimensions,
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -59,7 +58,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
   const [showTipsModal, setShowTipsModal] = useState<boolean>(false);
   const [showWorkCheckModal, setShowWorkCheckModal] = useState<boolean>(false);
   const [workCheckNote, setWorkCheckNote] = useState<string>('');
-  const { width } = Dimensions.get('window');
 
   const menuItems: MenuItem[] = [
     {
@@ -567,26 +565,26 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
         onRequestClose={closeDrawer}
       >
         <View style={globalStyles.homeModalOverlay}>
-          <View style={[globalStyles.homeDrawerContainer, { width: width * 0.85 }]}>
-        <CustomDrawer
-          onClose={closeDrawer}
-          onLogout={onLogout}
-          onNavigateToComplaint={handleNavigateToComplaint}
-          onNavigateToMaterialRequisition={handleNavigateToMaterialRequisition}
-          onNavigateToLeave={handleNavigateToLeave}
-          onNavigateToTravelling={handleNavigateToTravelling}
-          onNavigateToAddCustomer={handleNavigateToAddCustomer}
-          onNavigateToCreateAMC={handleNavigateToCreateAMC}
-          onNavigateToViewAttendance={handleNavigateToViewAttendance}
-          onShowTips={handleShowTips}
-          mobileNumber={mobileNumber}
-        />
-          </View>
           <TouchableOpacity
             style={globalStyles.homeModalBackdrop}
             activeOpacity={1}
             onPress={closeDrawer}
           />
+          <View style={globalStyles.homeDrawerContainer}>
+            <CustomDrawer
+              onClose={closeDrawer}
+              onLogout={onLogout}
+              onNavigateToComplaint={handleNavigateToComplaint}
+              onNavigateToMaterialRequisition={handleNavigateToMaterialRequisition}
+              onNavigateToLeave={handleNavigateToLeave}
+              onNavigateToTravelling={handleNavigateToTravelling}
+              onNavigateToAddCustomer={handleNavigateToAddCustomer}
+              onNavigateToCreateAMC={handleNavigateToCreateAMC}
+              onNavigateToViewAttendance={handleNavigateToViewAttendance}
+              onShowTips={handleShowTips}
+              mobileNumber={mobileNumber}
+            />
+          </View>
         </View>
       </Modal>
 
