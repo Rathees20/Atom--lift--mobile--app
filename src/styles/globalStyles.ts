@@ -524,9 +524,7 @@ export const globalStyles = StyleSheet.create({
   },
   leaveContent: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
+    backgroundColor: '#f8f9fa',
   },
   leaveEmptyText: {
     fontSize: 18,

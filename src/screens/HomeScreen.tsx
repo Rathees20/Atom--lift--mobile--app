@@ -168,7 +168,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
   const handleApplyLeave = (): void => {
     console.log('Leave applied successfully');
     setShowLeaveScreen(false);
-    setShowLeaveListScreen(false); // Go back to home after applying
+    // Keep showing leave list screen so user can see their newly created request
+    // The leave list will refresh automatically when component mounts
   };
 
   const handleNavigateToTravelling = (): void => {
@@ -276,6 +277,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
   const handleBackFromAMCList = (): void => {
     setShowAMCListScreen(false);
   };
+
+
 
   const handleBackFromCustomers = (): void => {
     setShowCustomersScreen(false);

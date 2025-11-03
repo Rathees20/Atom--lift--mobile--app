@@ -52,6 +52,11 @@ export interface AddCustomerFormData {
   mobileNumber: string;
   email: string;
   customerSiteAddress: string;
+  siteId: string;
+  siteAddress: string;
+  contactPersonName: string;
+  city: string;
+  jobNo?: string;
 }
 
 // Create AMC form types

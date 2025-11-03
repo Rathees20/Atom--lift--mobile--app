@@ -6,10 +6,12 @@ import {
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
 import { CustomDrawerProps } from '../../types';
+import { fetchUserDetails, UserDetails } from '../utils/api';
 
 interface DrawerItem {
   id: number;
@@ -33,6 +35,8 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
     mobileNumber 
   } = props;
   const [currentTime, setCurrentTime] = useState<string>('');
+  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+  const [loadingUserDetails, setLoadingUserDetails] = useState<boolean>(false);
 
   useEffect(() => {
     const updateTime = () => {
@@ -49,6 +53,23 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
     const interval = setInterval(updateTime, 1000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const loadUserDetails = async () => {
+      setLoadingUserDetails(true);
+      try {
+        const details = await fetchUserDetails();
+        setUserDetails(details);
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+        // Silently fail, component will show mobileNumber as fallback
+      } finally {
+        setLoadingUserDetails(false);
+      }
+    };
+
+    loadUserDetails();
   }, []);
   const menuItems: DrawerItem[] = [
     {
@@ -132,13 +153,41 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
             <Ionicons name="person-outline" size={24} color="#fff" />
           </View>
           <View style={globalStyles.drawerUserDetails}>
-            <Text style={globalStyles.drawerUserName}>soundahr</Text>
-            <View style={globalStyles.drawerPhoneInfo}>
-              <Ionicons name="call-outline" size={16} color="#fff" />
-              <Text style={globalStyles.drawerPhoneNumber}>
-                {mobileNumber ? `+91 ${mobileNumber}` : '*******4821'}
-              </Text>
-            </View>
+            {loadingUserDetails ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <>
+                <Text style={globalStyles.drawerUserName}>
+                  {userDetails?.full_name || 
+                   (userDetails?.first_name && userDetails?.last_name 
+                     ? `${userDetails.first_name} ${userDetails.last_name}`.trim()
+                     : userDetails?.first_name || 
+                       userDetails?.username || 
+                       userDetails?.email?.split('@')[0] || 
+                       'User')}
+                </Text>
+                {/* Phone Number */}
+                <View style={globalStyles.drawerPhoneInfo}>
+                  <Ionicons name="call-outline" size={16} color="#fff" />
+                  <Text style={globalStyles.drawerPhoneNumber}>
+                    {userDetails?.phone_number ||
+                     userDetails?.profile?.phone_number ||
+                     userDetails?.mobile ||
+                     userDetails?.phone ||
+                     (mobileNumber ? `+91 ${mobileNumber}` : 'Not provided')}
+                  </Text>
+                </View>
+                {/* Email */}
+                {userDetails?.email && (
+                  <View style={[globalStyles.drawerPhoneInfo, { marginTop: 4 }]}>
+                    <Ionicons name="mail-outline" size={16} color="#fff" />
+                    <Text style={globalStyles.drawerPhoneNumber}>
+                      {userDetails.email}
+                    </Text>
+                  </View>
+                )}
+              </>
+            )}
           </View>
         </View>
       </View>

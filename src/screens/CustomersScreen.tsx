@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,109 +7,61 @@ import {
   ScrollView,
   StatusBar,
   TextInput,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
+import { getCustomerList, Customer } from '../utils/api';
 
 interface CustomersScreenProps {
   onBack: () => void;
 }
 
-interface CustomerItem {
-  id: number;
-  customerId: string;
-  number: string;
-  name: string;
-}
-
 const CustomersScreen: React.FC<CustomersScreenProps> = ({ onBack }) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showSearchInput, setShowSearchInput] = useState<boolean>(false);
-  const customerItems: CustomerItem[] = [
-    {
-      id: 1,
-      customerId: 'null',
-      number: '1',
-      name: 'porur',
-    },
-    {
-      id: 2,
-      customerId: 'AL9876',
-      number: '988888',
-      name: 'Test Site 1',
-    },
-    {
-      id: 3,
-      customerId: 'test0003',
-      number: '123',
-      name: 'Test Site',
-    },
-    {
-      id: 4,
-      customerId: 'AL999',
-      number: '9999',
-      name: 'test2',
-    },
-    {
-      id: 5,
-      customerId: 'AL206',
-      number: 'Coimbatore',
-      name: 'Mr.Madhan',
-    },
-    {
-      id: 6,
-      customerId: 'AL205',
-      number: 'Potheri 1',
-      name: 'Ms.Seshas Home And Lands',
-    },
-    {
-      id: 7,
-      customerId: 'AL204',
-      number: 'Urapakkam 2',
-      name: 'Ms.Seshas Homes And Lands',
-    },
-    {
-      id: 8,
-      customerId: 'AL199',
-      number: 'Kodambakkam 5',
-      name: 'Mr.Anandhan',
-    },
-    {
-      id: 9,
-      customerId: 'AL197',
-      number: 'Aynavaram 2',
-      name: 'Mr.M.G.Subramaniyam',
-    },
-    {
-      id: 10,
-      customerId: '',
-      number: 'Ayanavaram 2',
-      name: 'Ms. K.S Construction',
-    },
-    {
-      id: 11,
-      customerId: 'AL194',
-      number: 'Thousand Lights 2',
-      name: 'Ms. Bravoo Realcors',
-    },
-    {
-      id: 12,
-      customerId: 'AL195',
-      number: 'Sriperumbudur 2',
-      name: 'Mr. Naresh',
-    },
-  ];
+  const [customerItems, setCustomerItems] = useState<Customer[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [expandedItemId, setExpandedItemId] = useState<number | null>(null);
 
-  const handleItemPress = (item: CustomerItem): void => {
-    console.log(`Pressed Customer: ${item.customerId} - ${item.name}`);
-    // Add navigation logic here for customer details
+  useEffect(() => {
+    fetchCustomerList();
+  }, []);
+
+  const fetchCustomerList = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getCustomerList();
+      setCustomerItems(data);
+      console.log('Fetched customer data:', data);
+    } catch (error: any) {
+      console.error('Error fetching customer list:', error);
+      Alert.alert('Error', error.message || 'Failed to fetch customer list. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const formatCustomerDisplay = (item: CustomerItem): string => {
-    if (item.customerId === 'null' || item.customerId === '') {
-      return `# ${item.number} - ${item.name}`;
+  const handleItemPress = (item: Customer): void => {
+    console.log(`Pressed Customer: ${item.reference_id || 'N/A'} - ${item.site_name}`);
+    // Toggle expanded state
+    setExpandedItemId(expandedItemId === item.id ? null : item.id);
+  };
+
+  const formatCustomerDisplay = (item: Customer): string => {
+    const referenceId = item.reference_id || '';
+    const jobNo = item.job_no || '';
+    const siteName = item.site_name || '';
+    
+    if (referenceId && jobNo) {
+      return `${referenceId} # ${jobNo} - ${siteName}`;
+    } else if (referenceId) {
+      return `${referenceId} - ${siteName}`;
+    } else if (jobNo) {
+      return `# ${jobNo} - ${siteName}`;
     }
-    return `${item.customerId} # ${item.number} - ${item.name}`;
+    return siteName;
   };
 
   const handleSearchPress = (): void => {
@@ -120,7 +72,7 @@ const CustomersScreen: React.FC<CustomersScreenProps> = ({ onBack }) => {
   };
 
   const filteredCustomers = customerItems.filter((item) => {
-    const displayText = formatCustomerDisplay(item).toLowerCase();
+    const displayText = `${item.site_name} ${item.reference_id || ''} ${item.job_no || ''}`.toLowerCase();
     return displayText.includes(searchQuery.toLowerCase());
   });
 
@@ -155,23 +107,138 @@ const CustomersScreen: React.FC<CustomersScreenProps> = ({ onBack }) => {
 
       {/* Content */}
       <ScrollView style={globalStyles.customersContent} showsVerticalScrollIndicator={false}>
-        {filteredCustomers.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            style={globalStyles.customersItem}
-            onPress={() => handleItemPress(item)}
-          >
-            <View style={globalStyles.customersItemLeft}>
-              <View style={globalStyles.customersIconContainer}>
-                <Ionicons name="person-outline" size={20} color="#3498db" />
+        {isLoading ? (
+          <View style={{ padding: 20, alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#3498db" />
+            <Text style={{ marginTop: 10, color: '#666' }}>Loading customers...</Text>
+          </View>
+        ) : filteredCustomers.length > 0 ? (
+          filteredCustomers.map((item) => {
+            const isExpanded = expandedItemId === item.id;
+            return (
+              <View key={item.id}>
+                <TouchableOpacity
+                  style={globalStyles.customersItem}
+                  onPress={() => handleItemPress(item)}
+                >
+                  <View style={globalStyles.customersItemLeft}>
+                    <View style={globalStyles.customersIconContainer}>
+                      <Ionicons name="person-outline" size={20} color="#3498db" />
+                    </View>
+                    <Text style={globalStyles.customersItemText}>
+                      {formatCustomerDisplay(item)}
+                    </Text>
+                  </View>
+                  <Ionicons
+                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                    size={20}
+                    color="#2c3e50"
+                  />
+                </TouchableOpacity>
+
+                {/* Expanded Details */}
+                {isExpanded && (
+                  <View style={{
+                    backgroundColor: '#f8f9fa',
+                    marginHorizontal: 10,
+                    marginBottom: 10,
+                    borderRadius: 8,
+                    padding: 15,
+                    borderLeftWidth: 4,
+                    borderLeftColor: '#3498db',
+                  }}>
+                    {/* Contact Information */}
+                    <View style={{ marginBottom: 15 }}>
+                      <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 8 }}>
+                        Contact Information
+                      </Text>
+                      {item.contact_person_name && (
+                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
+                          <Text style={{ fontWeight: '600' }}>Contact Person:</Text> {item.contact_person_name}
+                        </Text>
+                      )}
+                      {item.designation && (
+                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
+                          <Text style={{ fontWeight: '600' }}>Designation:</Text> {item.designation}
+                        </Text>
+                      )}
+                      {item.email && (
+                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
+                          <Text style={{ fontWeight: '600' }}>Email:</Text> {item.email}
+                        </Text>
+                      )}
+                      {item.phone && (
+                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
+                          <Text style={{ fontWeight: '600' }}>Phone:</Text> {item.phone}
+                        </Text>
+                      )}
+                      {item.mobile && (
+                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
+                          <Text style={{ fontWeight: '600' }}>Mobile:</Text> {item.mobile}
+                        </Text>
+                      )}
+                    </View>
+
+                    {/* Site Information */}
+                    <View style={{ marginBottom: 15 }}>
+                      <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 8 }}>
+                        Site Information
+                      </Text>
+                      {item.site_id && (
+                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
+                          <Text style={{ fontWeight: '600' }}>Site ID:</Text> {item.site_id}
+                        </Text>
+                      )}
+                      {item.site_address && (
+                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
+                          <Text style={{ fontWeight: '600' }}>Site Address:</Text> {item.site_address}
+                        </Text>
+                      )}
+                      {item.city && (
+                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
+                          <Text style={{ fontWeight: '600' }}>City:</Text> {item.city}
+                        </Text>
+                      )}
+                      {item.province_state_name && (
+                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
+                          <Text style={{ fontWeight: '600' }}>Province/State:</Text> {item.province_state_name}
+                        </Text>
+                      )}
+                      {item.sector && (
+                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
+                          <Text style={{ fontWeight: '600' }}>Sector:</Text> {item.sector}
+                        </Text>
+                      )}
+                    </View>
+
+                    {/* Additional Information */}
+                    {(item.branch_name || item.route_name) && (
+                      <View style={{ marginBottom: 15 }}>
+                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 8 }}>
+                          Additional Information
+                        </Text>
+                        {item.branch_name && (
+                          <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
+                            <Text style={{ fontWeight: '600' }}>Branch Name:</Text> {item.branch_name}
+                          </Text>
+                        )}
+                        {item.route_name && (
+                          <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
+                            <Text style={{ fontWeight: '600' }}>Route Name:</Text> {item.route_name}
+                          </Text>
+                        )}
+                      </View>
+                    )}
+                  </View>
+                )}
               </View>
-              <Text style={globalStyles.customersItemText}>
-                {formatCustomerDisplay(item)}
-              </Text>
-            </View>
-            <Ionicons name="chevron-down" size={16} color="#2c3e50" />
-          </TouchableOpacity>
-        ))}
+            );
+          })
+        ) : (
+          <View style={{ padding: 20, alignItems: 'center' }}>
+            <Text style={{ color: '#666', fontSize: 16 }}>No customers found</Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

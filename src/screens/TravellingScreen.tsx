@@ -7,9 +7,12 @@ import {
   SafeAreaView,
   ScrollView,
   StatusBar,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
+import { createTravelRequest, CreateTravelRequestData } from '../utils/api';
 
 interface TravellingScreenProps {
   onBack: () => void;
@@ -26,6 +29,8 @@ const TravellingScreen: React.FC<TravellingScreenProps> = ({ onBack, onApplyTrav
     attachment: null,
   });
 
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const handleInputChange = (field: string, value: string): void => {
     setFormData(prev => ({
       ...prev,
@@ -33,9 +38,63 @@ const TravellingScreen: React.FC<TravellingScreenProps> = ({ onBack, onApplyTrav
     }));
   };
 
-  const handleApplyTravelling = (): void => {
-    console.log('Applying travelling:', formData);
-    onApplyTravelling();
+  const handleApplyTravelling = async (): Promise<void> => {
+    // Basic validation
+    if (!formData.travelBy.trim()) {
+      Alert.alert('Error', 'Please enter travel mode');
+      return;
+    }
+    if (!formData.travelDate.trim()) {
+      Alert.alert('Error', 'Please enter travel date');
+      return;
+    }
+    if (!formData.fromPlace.trim()) {
+      Alert.alert('Error', 'Please enter from place');
+      return;
+    }
+    if (!formData.toPlace.trim()) {
+      Alert.alert('Error', 'Please enter to place');
+      return;
+    }
+    if (!formData.amount.trim()) {
+      Alert.alert('Error', 'Please enter amount');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const travelRequestData: CreateTravelRequestData = {
+        travel_by: formData.travelBy.trim(),
+        travel_date: formData.travelDate.trim(),
+        from_place: formData.fromPlace.trim(),
+        to_place: formData.toPlace.trim(),
+        amount: formData.amount.trim(),
+        attachment: formData.attachment || undefined,
+      };
+
+      const result = await createTravelRequest(travelRequestData);
+
+      if (result.success) {
+        Alert.alert('Success', result.message || 'Travel request submitted successfully');
+        // Reset form
+        setFormData({
+          travelBy: '',
+          travelDate: '',
+          fromPlace: '',
+          toPlace: '',
+          amount: '',
+          attachment: null,
+        });
+        onApplyTravelling();
+      } else {
+        Alert.alert('Error', result.message || 'Failed to submit travel request');
+      }
+    } catch (error: any) {
+      console.error('Error submitting travel request:', error);
+      Alert.alert('Error', error.message || 'Failed to submit travel request. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -115,8 +174,16 @@ const TravellingScreen: React.FC<TravellingScreenProps> = ({ onBack, onApplyTrav
         </View>
 
         {/* Submit Button */}
-        <TouchableOpacity style={globalStyles.travellingSubmitButton} onPress={handleApplyTravelling}>
-          <Text style={globalStyles.travellingSubmitButtonText}>Submit</Text>
+        <TouchableOpacity
+          style={[globalStyles.travellingSubmitButton, isLoading && { opacity: 0.6 }]}
+          onPress={handleApplyTravelling}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={globalStyles.travellingSubmitButtonText}>Submit</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
