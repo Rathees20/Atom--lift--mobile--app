@@ -560,9 +560,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
       {/* Drawer Modal */}
       <Modal
         visible={isDrawerOpen}
-        animationType="slide"
+        animationType="none"
         transparent={true}
         onRequestClose={closeDrawer}
+        statusBarTranslucent={true}
       >
         <View style={globalStyles.homeModalOverlay}>
           <TouchableOpacity

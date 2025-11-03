@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   TextInput,
   StatusBar,
-  Alert,
   ScrollView,
   ActivityIndicator,
   Modal,
@@ -15,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
 import { CreateAMCFormData } from '../../types';
 import { createAMC, getCustomerList, Customer, getAMCTypes, AMCType, createAMCType } from '../utils/api';
+import { useAlert } from '../contexts/AlertContext';
 
 interface CreateAMCScreenProps {
   onBack: () => void;
@@ -22,6 +22,7 @@ interface CreateAMCScreenProps {
 }
 
 const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => {
+  const { showSuccessAlert, showErrorAlert } = useAlert();
   const [formData, setFormData] = useState<CreateAMCFormData>({
     selectedCustomer: '',
     startDate: '',
@@ -67,7 +68,7 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
       setCustomers(data);
     } catch (error: any) {
       console.error('Error fetching customers:', error);
-      Alert.alert('Error', 'Failed to load customers. Please try again.');
+      showErrorAlert('Failed to load customers. Please try again.');
     } finally {
       setIsLoadingCustomers(false);
     }
@@ -80,7 +81,7 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
       setAmcTypes(data);
     } catch (error: any) {
       console.error('Error fetching AMC types:', error);
-      Alert.alert('Error', 'Failed to load AMC types. Please try again.');
+      showErrorAlert('Failed to load AMC types. Please try again.');
     } finally {
       setIsLoadingAMCTypes(false);
     }
@@ -88,7 +89,7 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
 
   const handleCreateAMCType = async (): Promise<void> => {
     if (!newAMCTypeName.trim()) {
-      Alert.alert('Error', 'Please enter AMC type name');
+      showErrorAlert('Please enter AMC type name');
       return;
     }
 
@@ -97,17 +98,17 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
       const result = await createAMCType({ name: newAMCTypeName.trim() });
       
       if (result.success) {
-        Alert.alert('Success', result.message || 'AMC type created successfully');
+        showSuccessAlert(result.message || 'AMC type created successfully');
         setNewAMCTypeName('');
         setShowAMCTypeModal(false);
         // Refresh AMC types list
         await fetchAMCTypes();
       } else {
-        Alert.alert('Error', result.message || 'Failed to create AMC type');
+        showErrorAlert(result.message || 'Failed to create AMC type');
       }
     } catch (error: any) {
       console.error('Error creating AMC type:', error);
-      Alert.alert('Error', error.message || 'Failed to create AMC type. Please try again.');
+      showErrorAlert(error.message || 'Failed to create AMC type. Please try again.');
     } finally {
       setIsCreatingAMCType(false);
     }
@@ -174,37 +175,37 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
   const handleSubmit = async (): Promise<void> => {
     // Basic validation
     if (!formData.selectedCustomer.trim()) {
-      Alert.alert('Error', 'Please select a customer');
+      showErrorAlert('Please select a customer');
       return;
     }
     if (!formData.startDate.trim()) {
-      Alert.alert('Error', 'Please select start date');
+      showErrorAlert('Please select start date');
       return;
     }
     if (!formData.endDate.trim()) {
-      Alert.alert('Error', 'Please select end date');
+      showErrorAlert('Please select end date');
       return;
     }
     if (!formData.amcType.trim()) {
-      Alert.alert('Error', 'Please select AMC type');
+      showErrorAlert('Please select AMC type');
       return;
     }
     if (!formData.numberOfServices.trim()) {
-      Alert.alert('Error', 'Please enter number of services');
+      showErrorAlert('Please enter number of services');
       return;
     }
     if (!formData.paymentAmount.trim()) {
-      Alert.alert('Error', 'Please enter payment amount');
+      showErrorAlert('Please enter payment amount');
       return;
     }
 
     // Number validation
     if (isNaN(Number(formData.numberOfServices)) || Number(formData.numberOfServices) <= 0) {
-      Alert.alert('Error', 'Please enter a valid number of services');
+      showErrorAlert('Please enter a valid number of services');
       return;
     }
     if (isNaN(Number(formData.paymentAmount)) || Number(formData.paymentAmount) <= 0) {
-      Alert.alert('Error', 'Please enter a valid payment amount');
+      showErrorAlert('Please enter a valid payment amount');
       return;
     }
 
@@ -224,14 +225,19 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
       const result = await createAMC(amcData);
       
       if (result.success) {
-        Alert.alert('Success', result.message || 'AMC created successfully');
-        onSave(formData);
+        showSuccessAlert(
+          result.message || 'AMC created successfully',
+          () => {
+            onSave(formData);
+            onBack(); // Close the form after success
+          }
+        );
       } else {
-        Alert.alert('Error', result.message || 'Failed to create AMC');
+        showErrorAlert(result.message || 'Failed to create AMC');
       }
     } catch (error: any) {
       console.error('Error creating AMC:', error);
-      Alert.alert('Error', error.message || 'Failed to create AMC. Please try again.');
+      showErrorAlert(error.message || 'Failed to create AMC. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -525,216 +531,154 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
         </View>
       </Modal>
 
-      {/* Date Picker Modal */}
+      {/* Date Picker Modal - Calendar View */}
       <Modal
         visible={showDatePicker}
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         onRequestClose={handleDateCancel}
       >
-        <View style={{
-          flex: 1,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          justifyContent: 'flex-end',
-        }}>
-          <View style={{
-            backgroundColor: '#fff',
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-            padding: 20,
-          }}>
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: 20,
-            }}>
-              <TouchableOpacity onPress={handleDateCancel}>
-                <Text style={{ color: '#3498db', fontSize: 16, fontWeight: '600' }}>Cancel</Text>
-              </TouchableOpacity>
-              <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#2c3e50' }}>
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+          activeOpacity={1}
+          onPress={handleDateCancel}
+        >
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: 12,
+              width: '90%',
+              maxWidth: 400,
+              padding: 20,
+            }}
+            activeOpacity={1}
+            onPress={() => {}}
+          >
+            {/* Header */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={{ fontSize: 20, fontWeight: '600', color: '#2c3e50' }}>
                 Select {selectedDateField === 'startDate' ? 'Start' : 'End'} Date
               </Text>
-              <TouchableOpacity onPress={handleDateConfirm}>
-                <Text style={{ color: '#3498db', fontSize: 16, fontWeight: '600' }}>Done</Text>
+              <TouchableOpacity onPress={handleDateCancel}>
+                <Ionicons name="close" size={24} color="#666" />
               </TouchableOpacity>
             </View>
 
-            {/* Date Picker */}
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-around',
-              alignItems: 'center',
-              marginBottom: 20,
-            }}>
-              {/* Day */}
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 14, color: '#7f8c8d', marginBottom: 10 }}>Day</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <TouchableOpacity
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      backgroundColor: '#f8f9fa',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                    onPress={() => {
-                      const newDate = new Date(tempDate);
-                      newDate.setDate(newDate.getDate() - 1);
-                      setTempDate(newDate);
-                    }}
-                  >
-                    <Ionicons name="chevron-down" size={20} color="#3498db" />
-                  </TouchableOpacity>
-                  <Text style={{
-                    fontSize: 24,
-                    fontWeight: 'bold',
-                    color: '#2c3e50',
-                    marginHorizontal: 15,
-                    minWidth: 40,
-                    textAlign: 'center'
-                  }}>
-                    {tempDate.getDate().toString().padStart(2, '0')}
-                  </Text>
-                  <TouchableOpacity
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      backgroundColor: '#f8f9fa',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                    onPress={() => {
-                      const newDate = new Date(tempDate);
-                      newDate.setDate(newDate.getDate() + 1);
-                      setTempDate(newDate);
-                    }}
-                  >
-                    <Ionicons name="chevron-up" size={20} color="#3498db" />
-                  </TouchableOpacity>
-                </View>
-              </View>
+            {/* Month Navigation */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  const newDate = new Date(tempDate);
+                  newDate.setMonth(tempDate.getMonth() - 1);
+                  setTempDate(newDate);
+                }}
+                style={{ padding: 8 }}
+              >
+                <Ionicons name="chevron-back" size={24} color="#3498db" />
+              </TouchableOpacity>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: '#2c3e50' }}>
+                {tempDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  const newDate = new Date(tempDate);
+                  newDate.setMonth(tempDate.getMonth() + 1);
+                  setTempDate(newDate);
+                }}
+                style={{ padding: 8 }}
+              >
+                <Ionicons name="chevron-forward" size={24} color="#3498db" />
+              </TouchableOpacity>
+            </View>
 
-              {/* Month */}
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 14, color: '#7f8c8d', marginBottom: 10 }}>Month</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <TouchableOpacity
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      backgroundColor: '#f8f9fa',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                    onPress={() => {
-                      const newDate = new Date(tempDate);
-                      newDate.setMonth(newDate.getMonth() - 1);
-                      setTempDate(newDate);
-                    }}
-                  >
-                    <Ionicons name="chevron-down" size={20} color="#3498db" />
-                  </TouchableOpacity>
-                  <Text style={{
-                    fontSize: 20,
-                    fontWeight: 'bold',
-                    color: '#2c3e50',
-                    marginHorizontal: 10,
-                    minWidth: 60,
-                    textAlign: 'center'
-                  }}>
-                    {tempDate.toLocaleDateString('en-US', { month: 'short' })}
-                  </Text>
-                  <TouchableOpacity
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      backgroundColor: '#f8f9fa',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                    onPress={() => {
-                      const newDate = new Date(tempDate);
-                      newDate.setMonth(newDate.getMonth() + 1);
-                      setTempDate(newDate);
-                    }}
-                  >
-                    <Ionicons name="chevron-up" size={20} color="#3498db" />
-                  </TouchableOpacity>
+            {/* Day Names */}
+            <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                <View key={day} style={{ flex: 1, alignItems: 'center', paddingVertical: 8 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#7f8c8d' }}>{day}</Text>
                 </View>
-              </View>
+              ))}
+            </View>
 
-              {/* Year */}
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 14, color: '#7f8c8d', marginBottom: 10 }}>Year</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <TouchableOpacity
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      backgroundColor: '#f8f9fa',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                    onPress={() => {
-                      const newDate = new Date(tempDate);
-                      newDate.setFullYear(newDate.getFullYear() - 1);
-                      setTempDate(newDate);
-                    }}
-                  >
-                    <Ionicons name="chevron-down" size={20} color="#3498db" />
-                  </TouchableOpacity>
-                  <Text style={{
-                    fontSize: 20,
-                    fontWeight: 'bold',
-                    color: '#2c3e50',
-                    marginHorizontal: 10,
-                    minWidth: 50,
-                    textAlign: 'center'
-                  }}>
-                    {tempDate.getFullYear()}
-                  </Text>
-                  <TouchableOpacity
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      backgroundColor: '#f8f9fa',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                    onPress={() => {
-                      const newDate = new Date(tempDate);
-                      newDate.setFullYear(newDate.getFullYear() + 1);
-                      setTempDate(newDate);
-                    }}
-                  >
-                    <Ionicons name="chevron-up" size={20} color="#3498db" />
-                  </TouchableOpacity>
-                </View>
-              </View>
+            {/* Calendar Grid */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+              {(() => {
+                const year = tempDate.getFullYear();
+                const month = tempDate.getMonth();
+                const firstDayOfMonth = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const days = [];
+                
+                // Empty cells for days before month starts
+                for (let i = 0; i < firstDayOfMonth; i++) {
+                  days.push(null);
+                }
+                // Days of the month
+                for (let day = 1; day <= daysInMonth; day++) {
+                  days.push(day);
+                }
+
+                return days.map((day, index) => {
+                  if (day === null) {
+                    return <View key={`empty-${index}`} style={{ width: '14.28%', aspectRatio: 1 }} />;
+                  }
+                  const isSelected = day === tempDate.getDate();
+                  const isToday = day === new Date().getDate() && 
+                                 month === new Date().getMonth() && 
+                                 year === new Date().getFullYear();
+                  return (
+                    <TouchableOpacity
+                      key={day}
+                      onPress={() => {
+                        const newDate = new Date(tempDate);
+                        newDate.setDate(day);
+                        setTempDate(newDate);
+                      }}
+                      style={{
+                        width: '14.28%',
+                        aspectRatio: 1,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        borderRadius: 20,
+                        backgroundColor: isSelected ? '#3498db' : 'transparent',
+                        marginVertical: 2,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          color: isSelected ? '#fff' : isToday ? '#3498db' : '#2c3e50',
+                          fontWeight: isSelected || isToday ? '600' : '400',
+                        }}
+                      >
+                        {day}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                });
+              })()}
             </View>
 
             {/* Selected Date Display */}
             <View style={{
               backgroundColor: '#f8f9fa',
-              padding: 15,
-              borderRadius: 10,
+              padding: 12,
+              borderRadius: 8,
               alignItems: 'center',
-              marginBottom: 10,
+              marginTop: 15,
+              marginBottom: 15,
             }}>
               <Text style={{
-                fontSize: 16,
+                fontSize: 14,
                 color: '#2c3e50',
-                fontWeight: '600'
+                fontWeight: '500'
               }}>
-                Selected Date: {tempDate.toLocaleDateString('en-IN', {
+                {tempDate.toLocaleDateString('en-IN', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
@@ -742,8 +686,36 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
                 })}
               </Text>
             </View>
-          </View>
-        </View>
+
+            {/* Buttons */}
+            <View style={{ flexDirection: 'row', marginTop: 10, gap: 10 }}>
+              <TouchableOpacity
+                onPress={handleDateCancel}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 8,
+                  backgroundColor: '#e74c3c',
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleDateConfirm}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 8,
+                  backgroundColor: '#3498db',
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Select</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );

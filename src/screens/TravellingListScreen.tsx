@@ -7,11 +7,11 @@ import {
   StatusBar,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
 import { getTravelRequestList, TravelRequestItem } from '../utils/api';
+import { useAlert } from '../contexts/AlertContext';
 
 interface TravellingListScreenProps {
   onBack: () => void;
@@ -19,6 +19,7 @@ interface TravellingListScreenProps {
 }
 
 const TravellingListScreen: React.FC<TravellingListScreenProps> = ({ onBack, onAddNew }) => {
+  const { showErrorAlert } = useAlert();
   const [travelRequests, setTravelRequests] = useState<TravelRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -33,7 +34,7 @@ const TravellingListScreen: React.FC<TravellingListScreenProps> = ({ onBack, onA
       setTravelRequests(data);
     } catch (error: any) {
       console.error('Error fetching travel requests:', error);
-      Alert.alert('Error', 'Failed to load travel requests. Please try again.');
+      showErrorAlert('Failed to load travel requests. Please try again.');
     } finally {
       setIsLoading(false);
     }

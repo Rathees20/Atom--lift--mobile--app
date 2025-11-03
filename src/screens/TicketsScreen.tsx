@@ -15,6 +15,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Svg, { Path } from 'react-native-svg';
 import { globalStyles } from '../styles/globalStyles';
 import { getAssignedComplaints, ComplaintItem, updateComplaintStatus } from '../utils/api';
 
@@ -44,45 +45,65 @@ interface SignaturePadProps {
 
 const SignaturePad: React.FC<SignaturePadProps> = ({ onSignatureChange, signature, placeholder = "Sign here" }) => {
   const [paths, setPaths] = useState<Array<{ path: string; color: string; width: number }>>([]);
-  const [currentPath, setCurrentPath] = useState<string>('');
+  const [currentPath, setCurrentPath] = useState<Array<{ x: number; y: number }>>([]);
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const signatureRef = useRef<View>(null);
+  const [containerDimensions, setContainerDimensions] = useState({ width: 300, height: 100 });
 
-  const getCoordinates = (evt: any) => {
-    // Handle both touch and mouse events
-    if (evt.nativeEvent) {
-      // React Native touch events
-      return {
-        x: evt.nativeEvent.locationX || evt.nativeEvent.pageX,
-        y: evt.nativeEvent.locationY || evt.nativeEvent.pageY
-      };
+  const getCoordinates = (evt: any, gestureState: any) => {
+    // PanResponder provides coordinates relative to the responder view
+    // Use locationX/locationY from nativeEvent which are relative to the view
+    if (evt && evt.nativeEvent) {
+      const locationX = evt.nativeEvent.locationX ?? 0;
+      const locationY = evt.nativeEvent.locationY ?? 0;
+      const x = Math.max(0, Math.min(locationX, containerDimensions.width));
+      const y = Math.max(0, Math.min(locationY, containerDimensions.height));
+      return { x, y };
     }
-    // Fallback
+    // Fallback to gestureState
+    if (gestureState) {
+      const x = Math.max(0, Math.min((gestureState.x || gestureState.moveX || 0), containerDimensions.width));
+      const y = Math.max(0, Math.min((gestureState.y || gestureState.moveY || 0), containerDimensions.height));
+      return { x, y };
+    }
     return { x: 0, y: 0 };
   };
 
-  const startDrawing = (evt: any) => {
+  const startDrawing = (evt: any, gestureState: any) => {
     setIsDrawing(true);
-    const { x, y } = getCoordinates(evt);
-    const newPath = `M${x},${y}`;
-    setCurrentPath(newPath);
+    const { x, y } = getCoordinates(evt, gestureState);
+    console.log('Start drawing at:', x, y, 'Container:', containerDimensions);
+    setCurrentPath([{ x, y }]);
   };
 
-  const continueDrawing = (evt: any) => {
+  const continueDrawing = (evt: any, gestureState: any) => {
     if (!isDrawing) return;
-    const { x, y } = getCoordinates(evt);
-    setCurrentPath(prev => `${prev} L${x},${y}`);
+    const { x, y } = getCoordinates(evt, gestureState);
+    setCurrentPath(prev => {
+      // Only add point if it's different from the last one (avoid duplicates)
+      const lastPoint = prev[prev.length - 1];
+      if (!lastPoint || Math.abs(lastPoint.x - x) > 0.5 || Math.abs(lastPoint.y - y) > 0.5) {
+        return [...prev, { x, y }];
+      }
+      return prev;
+    });
   };
 
   const finishDrawing = () => {
-    if (isDrawing && currentPath) {
-      const newPaths = [...paths, { path: currentPath, color: '#000', width: 2 }];
+    if (isDrawing && currentPath.length > 0) {
+      // Convert points to SVG path
+      let pathString = `M${currentPath[0].x},${currentPath[0].y}`;
+      for (let i = 1; i < currentPath.length; i++) {
+        pathString += ` L${currentPath[i].x},${currentPath[i].y}`;
+      }
+      
+      const newPaths = [...paths, { path: pathString, color: '#000', width: 2 }];
       setPaths(newPaths);
-      setCurrentPath('');
+      setCurrentPath([]);
 
-      // Convert paths to SVG
+      // Convert paths to SVG string
       const svgPaths = newPaths.map(p => `<path d="${p.path}" stroke="${p.color}" stroke-width="${p.width}" fill="none"/>`).join('');
-      const svg = `<svg width="300" height="100" xmlns="http://www.w3.org/2000/svg">${svgPaths}</svg>`;
+      const svg = `<svg width="${containerDimensions.width}" height="${containerDimensions.height}" xmlns="http://www.w3.org/2000/svg">${svgPaths}</svg>`;
       console.log('Signature captured:', svg);
       onSignatureChange(svg);
     }
@@ -98,14 +119,51 @@ const SignaturePad: React.FC<SignaturePadProps> = ({ onSignatureChange, signatur
       onPanResponderRelease: finishDrawing,
       onPanResponderTerminate: finishDrawing,
     })
-  );
+  ).current;
+
+  const handleLayout = (event: any) => {
+    const { width, height } = event.nativeEvent.layout;
+    if (width > 0 && height > 0) {
+      setContainerDimensions({ width, height });
+      console.log('Container dimensions:', width, height);
+    }
+  };
 
   const clearSignature = () => {
     setPaths([]);
-    setCurrentPath('');
+    setCurrentPath([]);
     setIsDrawing(false);
     onSignatureChange('');
   };
+
+  // Parse existing signature if provided
+  useEffect(() => {
+    if (signature && signature.trim() && paths.length === 0) {
+      try {
+        // Try to parse SVG string and extract paths
+        const pathMatches = signature.match(/<path d="([^"]+)"[^>]*>/g);
+        if (pathMatches) {
+          const parsedPaths = pathMatches.map(match => {
+            const pathMatch = match.match(/d="([^"]+)"/);
+            return {
+              path: pathMatch ? pathMatch[1] : '',
+              color: '#000',
+              width: 2
+            };
+          }).filter(p => p.path);
+          if (parsedPaths.length > 0) {
+            setPaths(parsedPaths);
+          }
+        }
+      } catch (e) {
+        console.log('Could not parse signature:', e);
+      }
+    }
+  }, [signature]);
+
+  const currentPathString = currentPath.length > 0
+    ? `M${currentPath[0].x},${currentPath[0].y}${currentPath.slice(1).map(p => ` L${p.x},${p.y}`).join('')}`
+    : '';
 
   return (
     <View style={{ marginTop: 10 }}>
@@ -118,32 +176,51 @@ const SignaturePad: React.FC<SignaturePadProps> = ({ onSignatureChange, signatur
           borderWidth: 1,
           borderColor: '#ddd',
           borderRadius: 5,
-          height: 100,
-          backgroundColor: '#f8f9fa',
-          justifyContent: 'center',
-          alignItems: 'center',
+          height: containerDimensions.height,
+          width: '100%',
+          backgroundColor: '#fff',
+          overflow: 'hidden',
+          position: 'relative',
         }}
-        {...panResponder.current.panHandlers}
+        onLayout={handleLayout}
+        {...panResponder.panHandlers}
       >
-        {paths.length === 0 && !currentPath && !isDrawing ? (
-          <Text style={{ color: '#999', fontSize: 14 }}>{placeholder}</Text>
-        ) : (
-          <View style={{ width: '100%', height: '100%', position: 'relative' }}>
-            {paths.map((pathData, index) => (
-              <View key={index} style={{ position: 'absolute', top: 0, left: 0 }}>
-                {/* This is a simplified representation - in a real app you'd render SVG */}
-                <Text style={{ color: pathData.color, fontSize: 8 }}>
-                  ✓ Signature captured
-                </Text>
-              </View>
-            ))}
-            {isDrawing && currentPath && (
-              <View style={{ position: 'absolute', top: 0, left: 0 }}>
-                <Text style={{ color: '#3498db', fontSize: 8 }}>
-                  ✏️ Drawing...
-                </Text>
-              </View>
-            )}
+        <Svg height={containerDimensions.height} width="100%" style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+          {/* Render completed paths */}
+          {paths.map((pathData, index) => (
+            <Path
+              key={`path-${index}`}
+              d={pathData.path}
+              stroke={pathData.color}
+              strokeWidth={pathData.width}
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          ))}
+          {/* Render current path being drawn */}
+          {isDrawing && currentPathString && (
+            <Path
+              d={currentPathString}
+              stroke="#000"
+              strokeWidth={2}
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          )}
+        </Svg>
+        {paths.length === 0 && !isDrawing && (
+          <View style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+            <Text style={{ color: '#999', fontSize: 14 }}>{placeholder}</Text>
           </View>
         )}
       </View>

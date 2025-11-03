@@ -25,6 +25,8 @@ import {
   Priority,
   Executive,
 } from '../utils/api';
+import { formatMobileNumber, getMobileNumberError } from '../utils/validation';
+import { useAlert } from '../contexts/AlertContext';
 
 interface AddComplaintScreenProps {
   onBack: () => void;
@@ -32,6 +34,7 @@ interface AddComplaintScreenProps {
 }
 
 const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave }) => {
+  const { showSuccessAlert, showErrorAlert } = useAlert();
   const [formData, setFormData] = useState({
     complaint_type: '',
     customer: '',
@@ -64,7 +67,7 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
       setCustomers(data);
     } catch (error) {
       console.error('Error fetching customers:', error);
-      Alert.alert('Error', 'Failed to load customers');
+      showErrorAlert('Failed to load customers');
     }
   };
 
@@ -74,7 +77,7 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
       setComplaintTypes(data);
     } catch (error) {
       console.error('Error fetching complaint types:', error);
-      Alert.alert('Error', 'Failed to load complaint types');
+      showErrorAlert('Failed to load complaint types');
     }
   };
 
@@ -84,7 +87,7 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
       setPriorities(data);
     } catch (error) {
       console.error('Error fetching priorities:', error);
-      Alert.alert('Error', 'Failed to load priorities');
+      showErrorAlert('Failed to load priorities');
     }
   };
 
@@ -94,7 +97,7 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
       setExecutives(data);
     } catch (error) {
       console.error('Error fetching executives:', error);
-      Alert.alert('Error', 'Failed to load executives');
+      showErrorAlert('Failed to load executives');
     }
   };
 
@@ -104,7 +107,7 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
       return result.success;
     } catch (error) {
       console.error('Error creating complaint:', error);
-      Alert.alert('Error', 'Failed to create complaint');
+      showErrorAlert('Failed to create complaint');
       return false;
     }
   };
@@ -126,6 +129,11 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
   }, []);
 
   const handleInputChange = (field: string, value: string): void => {
+    // Format mobile number input
+    if (field === 'contact_person_mobile') {
+      value = formatMobileNumber(value);
+    }
+    
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -190,18 +198,36 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
   const handleSave = async (): Promise<void> => {
     // Validation
     if (!formData.complaint_type || !formData.customer || !formData.subject) {
-      Alert.alert('Validation Error', 'Please fill in all required fields');
+      showErrorAlert('Please fill in all required fields');
       return;
     }
 
-    setSubmitting(true);
-    const success = await submitComplaint(formData);
-    setSubmitting(false);
+    // Validate contact person mobile if provided
+    if (formData.contact_person_mobile && formData.contact_person_mobile.trim()) {
+      const mobileError = getMobileNumberError(formData.contact_person_mobile);
+      if (mobileError) {
+        showErrorAlert(mobileError);
+        return;
+      }
+    }
 
-    if (success) {
-      Alert.alert('Success', 'Complaint created successfully', [
-        { text: 'OK', onPress: onSave }
-      ]);
+    setSubmitting(true);
+    try {
+      const success = await submitComplaint(formData);
+      if (success) {
+        showSuccessAlert(
+          'Complaint created successfully',
+          () => {
+            onSave(); // Close the form after success
+          }
+        );
+      } else {
+        showErrorAlert('Failed to create complaint. Please try again.');
+      }
+    } catch (error: any) {
+      showErrorAlert(error.message || 'Failed to create complaint. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 

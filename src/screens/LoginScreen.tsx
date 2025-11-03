@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LoginScreenProps, LoginMethod } from '../../types';
 import { globalStyles } from '../styles/globalStyles';
 import { generateOTP, verifyOTP as verifyOTPApi, resendOTP as resendOTPApi } from '../utils/api';
+import { validateMobileNumber, validateEmail, formatMobileNumber } from '../utils/validation';
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
   const [contact, setContact] = useState<string>('');
@@ -43,11 +44,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
 
   const validateContact = (input: string, method: LoginMethod): boolean => {
     if (method === 'phone') {
-      const mobileRegex = /^[6-9]\d{9}$/;
-      return mobileRegex.test(input);
+      return validateMobileNumber(input);
     } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(input);
+      return validateEmail(input);
     }
   };
 
@@ -203,10 +202,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                     placeholder={loginMethod === 'phone' ? "Mobile Number" : "Email Address"}
                     placeholderTextColor="#999"
                     value={contact}
-                    onChangeText={(text: string) => setContact(loginMethod === 'phone' ? text.replace(/\D/g, '').slice(0, 10) : text.slice(0, 100))}
+                    onChangeText={(text: string) => setContact(loginMethod === 'phone' ? formatMobileNumber(text) : text.slice(0, 100))}
                     keyboardType={loginMethod === 'phone' ? "phone-pad" : "email-address"}
                     maxLength={loginMethod === 'phone' ? 10 : 100}
-                    autoCapitalize={loginMethod === 'email' ? "none" : "none"}
+                    autoCapitalize="none"
                   />
                 </View>
 

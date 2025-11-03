@@ -257,19 +257,12 @@ export const globalStyles = StyleSheet.create({
   },
   homeModalOverlay: {
     flex: 1,
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
   },
   homeDrawerContainer: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
     width: '85%',
+    height: '100%',
     backgroundColor: '#fff',
     elevation: 5,
     shadowColor: '#000',
@@ -279,7 +272,6 @@ export const globalStyles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    zIndex: 1000,
   },
   homeModalBackdrop: {
     position: 'absolute',
@@ -288,7 +280,6 @@ export const globalStyles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    zIndex: 999,
   },
 
   // Drawer Styles
@@ -641,9 +632,7 @@ export const globalStyles = StyleSheet.create({
   },
   travellingContent: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingVertical: 10,
   },
   travellingEmptyText: {
     fontSize: 18,

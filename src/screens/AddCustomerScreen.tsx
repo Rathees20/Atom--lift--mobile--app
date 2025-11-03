@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   TextInput,
   StatusBar,
-  Alert,
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
@@ -14,6 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
 import { AddCustomerFormData } from '../../types';
 import { createCustomer } from '../utils/api';
+import { validateMobileNumber, validateEmail, formatMobileNumber, getMobileNumberError, getEmailError } from '../utils/validation';
+import { useAlert } from '../contexts/AlertContext';
 
 interface AddCustomerScreenProps {
   onBack: () => void;
@@ -21,6 +22,7 @@ interface AddCustomerScreenProps {
 }
 
 const AddCustomerScreen: React.FC<AddCustomerScreenProps> = ({ onBack, onSave }) => {
+  const { showSuccessAlert, showErrorAlert } = useAlert();
   const [formData, setFormData] = useState<AddCustomerFormData>({
     customerSiteName: '',
     mobileNumber: '',
@@ -35,6 +37,11 @@ const AddCustomerScreen: React.FC<AddCustomerScreenProps> = ({ onBack, onSave })
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleInputChange = (field: keyof AddCustomerFormData, value: string): void => {
+    // Format mobile number input
+    if (field === 'mobileNumber') {
+      value = formatMobileNumber(value);
+    }
+    
     setFormData(prev => ({
       ...prev,
       [field]: value,
@@ -44,45 +51,38 @@ const AddCustomerScreen: React.FC<AddCustomerScreenProps> = ({ onBack, onSave })
   const handleSubmit = async (): Promise<void> => {
     // Basic validation
     if (!formData.customerSiteName.trim()) {
-      Alert.alert('Error', 'Please enter customer site name');
-      return;
-    }
-    if (!formData.mobileNumber.trim()) {
-      Alert.alert('Error', 'Please enter mobile number');
-      return;
-    }
-    if (!formData.email.trim()) {
-      Alert.alert('Error', 'Please enter email');
+      console.log('Validation: customer site name missing'); // Debug log
+      showErrorAlert('Please enter customer site name');
       return;
     }
     if (!formData.siteId.trim()) {
-      Alert.alert('Error', 'Please enter site ID');
+      showErrorAlert('Please enter site ID');
       return;
     }
     if (!formData.siteAddress.trim()) {
-      Alert.alert('Error', 'Please enter site address');
+      showErrorAlert('Please enter site address');
       return;
     }
     if (!formData.contactPersonName.trim()) {
-      Alert.alert('Error', 'Please enter contact person name');
+      showErrorAlert('Please enter contact person name');
       return;
     }
     if (!formData.city.trim()) {
-      Alert.alert('Error', 'Please enter city');
+      showErrorAlert('Please enter city');
+      return;
+    }
+
+    // Mobile number validation
+    const mobileError = getMobileNumberError(formData.mobileNumber);
+    if (mobileError) {
+      showErrorAlert(mobileError);
       return;
     }
 
     // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
-      return;
-    }
-
-    // Mobile number validation (basic)
-    const mobileRegex = /^[0-9]{10}$/;
-    if (!mobileRegex.test(formData.mobileNumber.replace(/\D/g, ''))) {
-      Alert.alert('Error', 'Please enter a valid 10-digit mobile number');
+    const emailError = getEmailError(formData.email);
+    if (emailError) {
+      showErrorAlert(emailError);
       return;
     }
 
@@ -106,15 +106,28 @@ const AddCustomerScreen: React.FC<AddCustomerScreenProps> = ({ onBack, onSave })
 
       const result = await createCustomer(customerData);
       
-      if (result.success) {
-        Alert.alert('Success', result.message || 'Customer created successfully');
-        onSave(formData);
+      console.log('Customer result:', result); // Debug log
+      
+      // Check if result has success field, or assume success if no error thrown
+      if (result && (result.success === true || result.success === undefined)) {
+        const successMessage = result.message || (result as any).msg || 'Customer created successfully';
+        console.log('Showing success alert:', successMessage); // Debug log
+        showSuccessAlert(
+          successMessage,
+          () => {
+            console.log('Success alert OK pressed, closing form'); // Debug log
+            onSave(formData);
+            onBack(); // Close the form after success
+          }
+        );
       } else {
-        Alert.alert('Error', result.message || 'Failed to create customer');
+        const errorMsg = result?.message || (result as any)?.error || 'Failed to create customer';
+        console.log('Showing error alert:', errorMsg); // Debug log
+        showErrorAlert(errorMsg);
       }
     } catch (error: any) {
       console.error('Error creating customer:', error);
-      Alert.alert('Error', error.message || 'Failed to create customer. Please try again.');
+      showErrorAlert(error.message || 'Failed to create customer. Please try again.');
     } finally {
       setIsLoading(false);
     }

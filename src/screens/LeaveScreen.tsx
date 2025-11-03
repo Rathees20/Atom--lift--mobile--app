@@ -11,10 +11,13 @@ import {
   ActivityIndicator,
   Modal,
   FlatList,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
 import { createLeave, CreateLeaveData, getLeaveTypes, LeaveType } from '../utils/api';
+import { getEmailError } from '../utils/validation';
+import { useAlert } from '../contexts/AlertContext';
 
 interface LeaveScreenProps {
   onBack: () => void;
@@ -22,6 +25,7 @@ interface LeaveScreenProps {
 }
 
 const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave }) => {
+  const { showSuccessAlert, showErrorAlert } = useAlert();
   const [formData, setFormData] = useState({
     halfDay: false,
     leaveType: '',
@@ -36,6 +40,10 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave }) => {
   const [loadingTypes, setLoadingTypes] = useState<boolean>(false);
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [selectedLeaveTypeName, setSelectedLeaveTypeName] = useState<string>('');
+  const [showFromDatePicker, setShowFromDatePicker] = useState<boolean>(false);
+  const [showToDatePicker, setShowToDatePicker] = useState<boolean>(false);
+  const [tempFromDate, setTempFromDate] = useState<Date>(new Date());
+  const [tempToDate, setTempToDate] = useState<Date>(new Date());
 
   useEffect(() => {
     fetchLeaveTypes();
@@ -76,7 +84,7 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave }) => {
     if (leaveTypes.length > 0) {
       setShowDropdown(true);
     } else {
-      Alert.alert('Info', 'Loading leave types...');
+      showErrorAlert('Loading leave types...');
     }
   };
 
@@ -86,28 +94,25 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave }) => {
 
   const validateForm = (): boolean => {
     if (!formData.leaveType.trim()) {
-      Alert.alert('Validation Error', 'Please select a leave type');
+      showErrorAlert('Please select a leave type');
       return false;
     }
     if (!formData.fromDate.trim()) {
-      Alert.alert('Validation Error', 'Please select from date');
+      showErrorAlert('Please select from date');
       return false;
     }
     if (!formData.toDate.trim()) {
-      Alert.alert('Validation Error', 'Please select to date');
+      showErrorAlert('Please select to date');
       return false;
     }
-    if (!formData.email.trim()) {
-      Alert.alert('Validation Error', 'Please enter your email');
-      return false;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email.trim())) {
-      Alert.alert('Validation Error', 'Please enter a valid email address');
+    // Email validation
+    const emailError = getEmailError(formData.email);
+    if (emailError) {
+      showErrorAlert(emailError);
       return false;
     }
     if (!formData.reason.trim()) {
-      Alert.alert('Validation Error', 'Please enter a reason for leave');
+      showErrorAlert('Please enter a reason for leave');
       return false;
     }
     return true;
@@ -125,6 +130,224 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave }) => {
       return `${year}-${month}-${day}`;
     }
     return dateString;
+  };
+
+  const formatDateForDisplay = (dateString: string): string => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      // Try parsing as YYYY-MM-DD format
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        const [year, month, day] = dateString.split('-');
+        return `${day}/${month}/${year}`;
+      }
+      return dateString;
+    }
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatDateForInput = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleOpenFromDatePicker = (): void => {
+    if (formData.fromDate) {
+      const date = new Date(formData.fromDate);
+      if (!isNaN(date.getTime())) {
+        setTempFromDate(date);
+      }
+    }
+    setShowFromDatePicker(true);
+  };
+
+  const handleOpenToDatePicker = (): void => {
+    if (formData.toDate) {
+      const date = new Date(formData.toDate);
+      if (!isNaN(date.getTime())) {
+        setTempToDate(date);
+      }
+    }
+    setShowToDatePicker(true);
+  };
+
+  const handleConfirmFromDate = (): void => {
+    const formattedDate = formatDateForInput(tempFromDate);
+    handleInputChange('fromDate', formattedDate);
+    setShowFromDatePicker(false);
+  };
+
+  const handleConfirmToDate = (): void => {
+    const formattedDate = formatDateForInput(tempToDate);
+    handleInputChange('toDate', formattedDate);
+    setShowToDatePicker(false);
+  };
+
+  const renderDatePickerModal = (
+    visible: boolean,
+    date: Date,
+    onDateChange: (newDate: Date) => void,
+    onConfirm: () => void,
+    onCancel: () => void
+  ) => {
+    const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    const days = [];
+    // Empty cells for days before month starts
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push(null);
+    }
+    // Days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(day);
+    }
+
+    return (
+      <Modal visible={visible} transparent={true} animationType="fade" onRequestClose={onCancel}>
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+          activeOpacity={1}
+          onPress={onCancel}
+        >
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: 12,
+              width: '90%',
+              maxWidth: 400,
+              padding: 20,
+            }}
+            activeOpacity={1}
+            onPress={() => {}}
+          >
+            {/* Header */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={{ fontSize: 20, fontWeight: '600', color: '#2c3e50' }}>
+                {monthNames[date.getMonth()]} {date.getFullYear()}
+              </Text>
+              <TouchableOpacity onPress={onCancel}>
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Month Navigation */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  const newDate = new Date(date);
+                  newDate.setMonth(date.getMonth() - 1);
+                  onDateChange(newDate);
+                }}
+                style={{ padding: 8 }}
+              >
+                <Ionicons name="chevron-back" size={24} color="#3498db" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  const newDate = new Date(date);
+                  newDate.setMonth(date.getMonth() + 1);
+                  onDateChange(newDate);
+                }}
+                style={{ padding: 8 }}
+              >
+                <Ionicons name="chevron-forward" size={24} color="#3498db" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Day Names */}
+            <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+              {dayNames.map((day) => (
+                <View key={day} style={{ flex: 1, alignItems: 'center', paddingVertical: 8 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#7f8c8d' }}>{day}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Calendar Grid */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+              {days.map((day, index) => {
+                if (day === null) {
+                  return <View key={`empty-${index}`} style={{ width: '14.28%', aspectRatio: 1 }} />;
+                }
+                const isSelected = day === date.getDate();
+                const isToday = day === new Date().getDate() && 
+                               date.getMonth() === new Date().getMonth() && 
+                               date.getFullYear() === new Date().getFullYear();
+                return (
+                  <TouchableOpacity
+                    key={day}
+                    onPress={() => {
+                      const newDate = new Date(date);
+                      newDate.setDate(day);
+                      onDateChange(newDate);
+                    }}
+                    style={{
+                      width: '14.28%',
+                      aspectRatio: 1,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderRadius: 20,
+                      backgroundColor: isSelected ? '#3498db' : 'transparent',
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: isSelected ? '#fff' : isToday ? '#3498db' : '#2c3e50',
+                        fontWeight: isSelected || isToday ? '600' : '400',
+                      }}
+                    >
+                      {day}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Buttons */}
+            <View style={{ flexDirection: 'row', marginTop: 20, gap: 10 }}>
+              <TouchableOpacity
+                onPress={onCancel}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 8,
+                  backgroundColor: '#e74c3c',
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={onConfirm}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 8,
+                  backgroundColor: '#3498db',
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Select</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+    );
   };
 
   const handleApplyLeave = async (): Promise<void> => {
@@ -145,25 +368,22 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave }) => {
 
       const result = await createLeave(leaveData);
       
-      if (result.success) {
-        Alert.alert(
-          'Success',
+      console.log('Leave result:', result); // Debug log
+      
+      if (result && result.success === true) {
+        showSuccessAlert(
           result.message || 'Leave request submitted successfully',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                onApplyLeave();
-              },
-            },
-          ]
+          () => {
+            onApplyLeave(); // Close the form and navigate back
+          }
         );
       } else {
-        Alert.alert('Error', result.message || 'Failed to submit leave request');
+        const errorMessage = result?.message || result?.error || 'Failed to submit leave request';
+        showErrorAlert(errorMessage);
       }
     } catch (error: any) {
       console.error('Error applying leave:', error);
-      Alert.alert('Error', error.message || 'Failed to submit leave request. Please try again.');
+      showErrorAlert(error.message || 'Failed to submit leave request. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -239,23 +459,29 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave }) => {
         {/* From Date Field */}
         <View style={globalStyles.leaveFieldContainer}>
           <Text style={globalStyles.leaveFieldLabel}>From Date</Text>
-          <TextInput
-            style={globalStyles.leaveTextInput}
-            placeholder="YYYY-MM-DD (e.g., 2024-01-15)"
-            value={formData.fromDate}
-            onChangeText={(value) => handleInputChange('fromDate', value)}
-          />
+          <TouchableOpacity
+            style={[globalStyles.leaveTextInput, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+            onPress={handleOpenFromDatePicker}
+          >
+            <Text style={{ color: formData.fromDate ? '#2c3e50' : '#999', fontSize: 16 }}>
+              {formData.fromDate ? formatDateForDisplay(formData.fromDate) : 'Select From Date'}
+            </Text>
+            <Ionicons name="calendar-outline" size={24} color="#3498db" />
+          </TouchableOpacity>
         </View>
 
         {/* To Date Field */}
         <View style={globalStyles.leaveFieldContainer}>
-          <Text style={globalStyles.leaveFieldLabel}>To date</Text>
-          <TextInput
-            style={globalStyles.leaveTextInput}
-            placeholder="YYYY-MM-DD (e.g., 2024-01-20)"
-            value={formData.toDate}
-            onChangeText={(value) => handleInputChange('toDate', value)}
-          />
+          <Text style={globalStyles.leaveFieldLabel}>To Date</Text>
+          <TouchableOpacity
+            style={[globalStyles.leaveTextInput, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+            onPress={handleOpenToDatePicker}
+          >
+            <Text style={{ color: formData.toDate ? '#2c3e50' : '#999', fontSize: 16 }}>
+              {formData.toDate ? formatDateForDisplay(formData.toDate) : 'Select To Date'}
+            </Text>
+            <Ionicons name="calendar-outline" size={24} color="#3498db" />
+          </TouchableOpacity>
         </View>
 
         {/* Email Field */}
@@ -360,6 +586,24 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave }) => {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+
+      {/* From Date Picker Modal */}
+      {renderDatePickerModal(
+        showFromDatePicker,
+        tempFromDate,
+        setTempFromDate,
+        handleConfirmFromDate,
+        () => setShowFromDatePicker(false)
+      )}
+
+      {/* To Date Picker Modal */}
+      {renderDatePickerModal(
+        showToDatePicker,
+        tempToDate,
+        setTempToDate,
+        handleConfirmToDate,
+        () => setShowToDatePicker(false)
+      )}
     </SafeAreaView>
   );
 };

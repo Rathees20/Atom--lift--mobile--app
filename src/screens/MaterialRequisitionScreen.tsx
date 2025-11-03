@@ -8,11 +8,11 @@ import {
   ScrollView,
   StatusBar,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
 import { getMaterialRequestList, createMaterialRequest, MaterialRequestItem, CreateMaterialRequestData, getUserData, getItemsList, Item } from '../utils/api';
+import { useAlert } from '../contexts/AlertContext';
 
 interface MaterialRequisitionScreenProps {
   onBack: () => void;
@@ -20,6 +20,7 @@ interface MaterialRequisitionScreenProps {
 }
 
 const MaterialRequisitionScreen: React.FC<MaterialRequisitionScreenProps> = ({ onBack, onSave }) => {
+  const { showSuccessAlert, showErrorAlert } = useAlert();
   const [formData, setFormData] = useState({
     name: '',
     item: '',
@@ -48,7 +49,7 @@ const MaterialRequisitionScreen: React.FC<MaterialRequisitionScreenProps> = ({ o
       setMaterialRequests(data);
     } catch (error: any) {
       console.error('Error fetching material requests:', error);
-      Alert.alert('Error', 'Failed to load material requests. Please try again.');
+      showErrorAlert('Failed to load material requests. Please try again.');
     } finally {
       setIsLoadingRequests(false);
     }
@@ -61,7 +62,7 @@ const MaterialRequisitionScreen: React.FC<MaterialRequisitionScreenProps> = ({ o
       setItems(data);
     } catch (error: any) {
       console.error('Error fetching items:', error);
-      Alert.alert('Error', 'Failed to load items. Please try again.');
+      showErrorAlert('Failed to load items. Please try again.');
     } finally {
       setIsLoadingItems(false);
     }
@@ -77,15 +78,15 @@ const MaterialRequisitionScreen: React.FC<MaterialRequisitionScreenProps> = ({ o
   const handleSave = async (): Promise<void> => {
     // Basic validation
     if (!formData.name.trim()) {
-      Alert.alert('Error', 'Please enter a name for the material request');
+      showErrorAlert('Please enter a name for the material request');
       return;
     }
     if (!formData.item.trim()) {
-      Alert.alert('Error', 'Please enter the item name');
+      showErrorAlert('Please enter the item name');
       return;
     }
     if (!formData.description.trim()) {
-      Alert.alert('Error', 'Please enter a description');
+      showErrorAlert('Please enter a description');
       return;
     }
 
@@ -107,25 +108,29 @@ const MaterialRequisitionScreen: React.FC<MaterialRequisitionScreenProps> = ({ o
       const result = await createMaterialRequest(materialRequestData);
 
       if (result.success) {
-        Alert.alert('Success', result.message || 'Material request created successfully');
-        // Reset form
-        setFormData({
-          name: '',
-          item: '',
-          description: '',
-          brand: '',
-        });
-        setSelectedItemId(null);
-        setShowForm(false);
-        // Refresh the list
-        await fetchMaterialRequests();
-        onSave();
+        showSuccessAlert(
+          result.message || 'Material request created successfully',
+          async () => {
+            // Reset form
+            setFormData({
+              name: '',
+              item: '',
+              description: '',
+              brand: '',
+            });
+            setSelectedItemId(null);
+            setShowForm(false);
+            // Refresh the list
+            await fetchMaterialRequests();
+            onSave(); // Close or update parent
+          }
+        );
       } else {
-        Alert.alert('Error', result.message || 'Failed to create material request');
+        showErrorAlert(result.message || 'Failed to create material request');
       }
     } catch (error: any) {
       console.error('Error creating material request:', error);
-      Alert.alert('Error', error.message || 'Failed to create material request. Please try again.');
+      showErrorAlert(error.message || 'Failed to create material request. Please try again.');
     } finally {
       setIsLoading(false);
     }

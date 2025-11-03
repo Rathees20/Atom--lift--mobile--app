@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import { getAuthToken, getUserData, logout } from './src/utils/api';
+import { AlertProvider } from './src/contexts/AlertContext';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -80,8 +81,10 @@ export default function App() {
   );
 
   return (
-    <SafeAreaProvider style={{ flex: 1, width: '100%' }}>
-      <AppContent />
-    </SafeAreaProvider>
+    <AlertProvider>
+      <SafeAreaProvider style={{ flex: 1, width: '100%' }}>
+        <AppContent />
+      </SafeAreaProvider>
+    </AlertProvider>
   );
 }
