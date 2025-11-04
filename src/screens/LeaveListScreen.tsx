@@ -196,10 +196,10 @@ const LeaveListScreen: React.FC<LeaveListScreenProps> = ({ onBack, onAddNew, onS
         <View
           style={{
             backgroundColor: '#fff',
-            marginHorizontal: 16,
+            marginHorizontal: 12,
             marginTop: 16,
             marginBottom: 8,
-            padding: 16,
+            padding: 18,
             borderRadius: 8,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },
@@ -321,10 +321,11 @@ const LeaveListScreen: React.FC<LeaveListScreenProps> = ({ onBack, onAddNew, onS
               key={item.id}
               style={{
                 backgroundColor: '#fff',
-                marginHorizontal: 16,
+                marginHorizontal: 12,
                 marginVertical: 8,
-                padding: 16,
+                padding: 18,
                 borderRadius: 8,
+                minHeight: 100,
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.1,

@@ -163,7 +163,7 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: '#3498db',
     paddingTop: 52,
     paddingBottom: 20,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
   },
   homeHeaderBottom: {
     flexDirection: 'row',
@@ -171,7 +171,7 @@ export const globalStyles = StyleSheet.create({
   },
   homeContent: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: 20,
     paddingBottom: 50,
     width: '100%',
@@ -189,10 +189,10 @@ export const globalStyles = StyleSheet.create({
     width: '48%',
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 20,
+    padding: 16,
     alignItems: 'center',
     marginBottom: 16,
-    minHeight: 120,
+    minHeight: 140,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -419,7 +419,7 @@ export const globalStyles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: HEADER_PADDING_TOP,
     paddingBottom: 16,
   },
@@ -442,7 +442,7 @@ export const globalStyles = StyleSheet.create({
   },
   complaintContent: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: 20,
   },
   complaintFieldContainer: {
@@ -516,6 +516,7 @@ export const globalStyles = StyleSheet.create({
   leaveContent: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    paddingHorizontal: 0,
   },
   leaveEmptyText: {
     fontSize: 18,
@@ -534,7 +535,7 @@ export const globalStyles = StyleSheet.create({
   // Leave Form Styles
   leaveFormContent: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: 20,
     backgroundColor: '#f8f9fa',
   },
@@ -773,7 +774,7 @@ export const globalStyles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: HEADER_PADDING_TOP,
     paddingBottom: 16,
   },
@@ -787,7 +788,7 @@ export const globalStyles = StyleSheet.create({
   },
   customerContent: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: 20,
   },
   customerFieldContainer: {
@@ -839,7 +840,7 @@ export const globalStyles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: HEADER_PADDING_TOP,
     paddingBottom: 16,
   },
@@ -853,7 +854,7 @@ export const globalStyles = StyleSheet.create({
   },
   amcContent: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: 20,
   },
   amcFieldContainer: {
@@ -978,7 +979,7 @@ export const globalStyles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: HEADER_PADDING_TOP,
     paddingBottom: 16,
   },
@@ -992,7 +993,7 @@ export const globalStyles = StyleSheet.create({
   },
   attendanceContent: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: 20,
   },
   attendanceCalendarCard: {
@@ -1315,7 +1316,7 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: '#3498db',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: HEADER_PADDING_TOP,
     paddingBottom: 16,
   },
@@ -1335,7 +1336,7 @@ export const globalStyles = StyleSheet.create({
   },
   routineMaintenanceContent: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: 20,
   },
   routineMaintenanceItem: {
@@ -1344,9 +1345,10 @@ export const globalStyles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#fff',
     borderRadius: 12,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
     marginBottom: 16,
+    minHeight: 70,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -1384,7 +1386,7 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: '#3498db',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: HEADER_PADDING_TOP,
     paddingBottom: 16,
   },
@@ -1404,7 +1406,7 @@ export const globalStyles = StyleSheet.create({
   },
   amcListContent: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: 20,
   },
   amcListItem: {
@@ -1413,9 +1415,10 @@ export const globalStyles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#fff',
     borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 16,
     marginBottom: 12,
+    minHeight: 80,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -1471,7 +1474,7 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: '#3498db',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: HEADER_PADDING_TOP,
     paddingBottom: 16,
   },
@@ -1497,8 +1500,9 @@ export const globalStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 12,
+    minHeight: 70,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
@@ -1524,7 +1528,7 @@ export const globalStyles = StyleSheet.create({
   },
   customersSearchContainer: {
     backgroundColor: '#fff',
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
@@ -1541,7 +1545,7 @@ export const globalStyles = StyleSheet.create({
   },
   amcListSearchContainer: {
     backgroundColor: '#fff',
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
@@ -1566,7 +1570,7 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: '#3498db',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: HEADER_PADDING_TOP,
     paddingBottom: 16,
   },
@@ -1594,7 +1598,7 @@ export const globalStyles = StyleSheet.create({
   },
   ticketsSearchContainer: {
     backgroundColor: '#fff',
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
@@ -1611,13 +1615,14 @@ export const globalStyles = StyleSheet.create({
   },
   ticketsContent: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: 20,
   },
   ticketsItem: {
     backgroundColor: '#fff',
     borderRadius: 12,
     marginBottom: 16,
+    minHeight: 90,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -1631,7 +1636,7 @@ export const globalStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 16,
   },
   ticketsMainRowLeft: {
@@ -1713,7 +1718,7 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: '#3498db',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: HEADER_PADDING_TOP,
     paddingBottom: 16,
   },
@@ -1733,7 +1738,7 @@ export const globalStyles = StyleSheet.create({
   },
   markAttendanceContent: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingTop: 40,
     alignItems: 'center',
   },

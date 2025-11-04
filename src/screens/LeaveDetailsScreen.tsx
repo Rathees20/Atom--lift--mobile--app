@@ -161,14 +161,15 @@ const LeaveDetailsScreen: React.FC<LeaveDetailsScreenProps> = ({ leave, onBack, 
             <Text style={{ marginTop: 10, color: '#666' }}>Loading...</Text>
           </View>
         ) : (
-          <View style={{ padding: 20 }}>
+          <View style={{ padding: 12 }}>
             {/* Leave Information */}
             <View
               style={{
                 backgroundColor: '#fff',
                 borderRadius: 10,
-                padding: 20,
+                padding: 18,
                 marginBottom: 15,
+                minHeight: 200,
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.1,
