@@ -169,143 +169,148 @@ const AMCListScreen: React.FC<AMCListScreenProps> = ({ onBack, onShowDetails }) 
                 {/* Expanded Details */}
                 {isExpanded && (
                   <View style={{
-                    backgroundColor: '#f8f9fa',
-                    marginHorizontal: 10,
-                    marginBottom: 10,
-                    borderRadius: 8,
-                    padding: 15,
-                    borderLeftWidth: 4,
-                    borderLeftColor: '#3498db',
+                    backgroundColor: '#ffffff',
+                    marginHorizontal: 12,
+                    marginBottom: 12,
+                    borderRadius: 12,
+                    padding: 16,
+                    borderWidth: 1,
+                    borderColor: '#e8e8e8',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.08,
+                    shadowRadius: 8,
+                    elevation: 3,
                   }}>
-                    {/* Customer Information */}
-                    {(item.customer_name || item.customer_email || item.customer_phone) && (
-                      <View style={{ marginBottom: 15 }}>
-                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 8 }}>
-                          Customer Information
-                        </Text>
-                        {item.customer_name && (
-                          <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                            <Text style={{ fontWeight: '600' }}>Name:</Text> {item.customer_name}
-                          </Text>
-                        )}
-                        {item.customer_email && (
-                          <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                            <Text style={{ fontWeight: '600' }}>Email:</Text> {item.customer_email}
-                          </Text>
-                        )}
-                        {item.customer_phone && (
-                          <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                            <Text style={{ fontWeight: '600' }}>Phone:</Text> {item.customer_phone}
-                          </Text>
-                        )}
+                    {/* Status Badge - Compact */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                        <View style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: 4,
+                          backgroundColor: getStatusColor(item.status || '', item.isOverdue || false),
+                          marginRight: 8,
+                        }} />
+                        <Text style={{ fontSize: 14, fontWeight: '600', color: '#2c3e50' }}>{getStatusText(item)}</Text>
                       </View>
-                    )}
-
-                    {/* Equipment & Service Details */}
-                    <View style={{ marginBottom: 15 }}>
-                      <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 8 }}>
-                        Equipment & Service
-                      </Text>
-                      {item.equipment_no && (
-                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                          <Text style={{ fontWeight: '600' }}>Equipment No:</Text> {item.equipment_no}
-                        </Text>
-                      )}
-                      {item.no_of_lifts && (
-                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                          <Text style={{ fontWeight: '600' }}>No. of Lifts:</Text> {item.no_of_lifts}
-                        </Text>
-                      )}
-                      {(item.no_of_services || item.number_of_services) && (
-                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                          <Text style={{ fontWeight: '600' }}>No. of Services:</Text> {item.no_of_services || item.number_of_services}
-                        </Text>
-                      )}
-                      {item.amc_type_name && (
-                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                          <Text style={{ fontWeight: '600' }}>AMC Type:</Text> {item.amc_type_name}
-                        </Text>
-                      )}
+                      {item.isOverdue ? (
+                        <View style={{
+                          backgroundColor: '#e74c3c',
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                          borderRadius: 12,
+                        }}>
+                          <Text style={{ fontSize: 10, color: '#fff', fontWeight: '600' }}>OVERDUE</Text>
+                        </View>
+                      ) : null}
                     </View>
 
-                    {/* Financial Information */}
-                    {(item.contract_amount || item.total || item.amount_due) && (
-                      <View style={{ marginBottom: 15 }}>
-                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 8 }}>
-                          Financial Information
-                        </Text>
-                        {item.contract_amount && (
-                          <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                            <Text style={{ fontWeight: '600' }}>Contract Amount:</Text> ₹{parseFloat(item.contract_amount).toLocaleString('en-IN')}
+                    {/* Compact Info Grid */}
+                    <View style={{ marginBottom: 16 }}>
+                      {item.customer_name ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="person" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1 }}>{item.customer_name}</Text>
+                        </View>
+                      ) : null}
+                      {item.customer_email ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="mail" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#3498db', flex: 1, fontWeight: '500' }}>{item.customer_email}</Text>
+                        </View>
+                      ) : null}
+                      {item.customer_phone ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="call" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1, fontWeight: '500' }}>{item.customer_phone}</Text>
+                        </View>
+                      ) : null}
+                      {item.equipment_no ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="hardware-chip" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1 }}>{item.equipment_no}</Text>
+                        </View>
+                      ) : null}
+                      {(item.no_of_lifts || item.no_of_services || item.number_of_services) ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="construct" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1 }}>
+                            {item.no_of_lifts ? `${item.no_of_lifts} Lifts` : ''}
+                            {(item.no_of_lifts && (item.no_of_services || item.number_of_services)) ? ', ' : ''}
+                            {(item.no_of_services || item.number_of_services) ? `${item.no_of_services || item.number_of_services} Services` : ''}
                           </Text>
-                        )}
-                        {item.total && (
-                          <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                            <Text style={{ fontWeight: '600' }}>Total:</Text> ₹{parseFloat(item.total).toLocaleString('en-IN')}
+                        </View>
+                      ) : null}
+                      {item.amc_type_name ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="layers" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1 }}>{item.amc_type_name}</Text>
+                        </View>
+                      ) : null}
+                      {item.contract_amount ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="document-text" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#2c3e50', flex: 1, fontWeight: '600' }}>
+                            Contract: ₹{parseFloat(item.contract_amount).toLocaleString('en-IN')}
                           </Text>
-                        )}
-                        {item.amount_due && (
-                          <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                            <Text style={{ fontWeight: '600' }}>Amount Due:</Text> ₹{parseFloat(item.amount_due).toLocaleString('en-IN')}
+                        </View>
+                      ) : null}
+                      {item.total_amount_paid ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="checkmark-circle" size={14} color="#27ae60" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#27ae60', flex: 1, fontWeight: '600' }}>
+                            Paid: ₹{parseFloat(item.total_amount_paid).toLocaleString('en-IN')}
                           </Text>
-                        )}
-                        {item.total_amount_paid && (
-                          <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                            <Text style={{ fontWeight: '600' }}>Amount Paid:</Text> ₹{parseFloat(item.total_amount_paid).toLocaleString('en-IN')}
+                        </View>
+                      ) : null}
+                      {item.amount_due ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="alert-circle" size={14} color="#e74c3c" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#e74c3c', flex: 1, fontWeight: '600' }}>
+                            Due: ₹{parseFloat(item.amount_due).toLocaleString('en-IN')}
                           </Text>
-                        )}
-                      </View>
-                    )}
-
-                    {/* Dates */}
-                    {(item.start_date || item.end_date) && (
-                      <View style={{ marginBottom: 15 }}>
-                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 8 }}>
-                          Dates
-                        </Text>
-                        {item.start_date && (
-                          <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                            <Text style={{ fontWeight: '600' }}>Start Date:</Text> {new Date(item.start_date).toLocaleDateString('en-IN')}
+                        </View>
+                      ) : null}
+                      {(item.start_date || item.end_date) ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="calendar" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1 }}>
+                            {item.start_date ? new Date(item.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
+                            {item.start_date && item.end_date ? ' - ' : ''}
+                            {item.end_date ? new Date(item.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
                           </Text>
-                        )}
-                        {item.end_date && (
-                          <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                            <Text style={{ fontWeight: '600' }}>End Date:</Text> {new Date(item.end_date).toLocaleDateString('en-IN')}
+                        </View>
+                      ) : null}
+                      {item.duration ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="time" size={14} color="#3498db" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#3498db', flex: 1, fontWeight: '500' }}>Duration: {item.duration}</Text>
+                        </View>
+                      ) : null}
+                      {item.customer_site_address ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'flex-start' }}>
+                          <Ionicons name="location" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18, marginTop: 2 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1, lineHeight: 18 }}>{item.customer_site_address}</Text>
+                        </View>
+                      ) : null}
+                      {(item.latitude || item.longitude) ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="navigate" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1, fontFamily: 'monospace' }}>
+                            {item.latitude}, {item.longitude}
                           </Text>
-                        )}
-                      </View>
-                    )}
-
-                    {/* Location */}
-                    {(item.latitude || item.longitude || item.customer_site_address) && (
-                      <View style={{ marginBottom: 15 }}>
-                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 8 }}>
-                          Location
-                        </Text>
-                        {item.customer_site_address && (
-                          <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                            <Text style={{ fontWeight: '600' }}>Address:</Text> {item.customer_site_address}
+                        </View>
+                      ) : null}
+                      {item.notes ? (
+                        <View style={{ marginBottom: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#f0f0f0' }}>
+                          <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 4 }}>Notes</Text>
+                          <Text style={{ fontSize: 13, color: '#34495e', lineHeight: 18, fontStyle: 'italic' }} numberOfLines={3}>
+                            {item.notes}
                           </Text>
-                        )}
-                        {(item.latitude || item.longitude) && (
-                          <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                            <Text style={{ fontWeight: '600' }}>Coordinates:</Text> {item.latitude}, {item.longitude}
-                          </Text>
-                        )}
-                      </View>
-                    )}
-
-                    {/* Notes */}
-                    {item.notes && (
-                      <View style={{ marginBottom: 15 }}>
-                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 8 }}>
-                          Notes
-                        </Text>
-                        <Text style={{ fontSize: 14, color: '#34495e' }}>
-                          {item.notes}
-                        </Text>
-                      </View>
-                    )}
+                        </View>
+                      ) : null}
+                    </View>
                   </View>
                 )}
               </View>

@@ -139,96 +139,84 @@ const CustomersScreen: React.FC<CustomersScreenProps> = ({ onBack }) => {
                 {/* Expanded Details */}
                 {isExpanded && (
                   <View style={{
-                    backgroundColor: '#f8f9fa',
-                    marginHorizontal: 10,
-                    marginBottom: 10,
-                    borderRadius: 8,
-                    padding: 15,
-                    borderLeftWidth: 4,
-                    borderLeftColor: '#3498db',
+                    backgroundColor: '#ffffff',
+                    marginHorizontal: 12,
+                    marginBottom: 12,
+                    borderRadius: 12,
+                    padding: 16,
+                    borderWidth: 1,
+                    borderColor: '#e8e8e8',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.08,
+                    shadowRadius: 8,
+                    elevation: 3,
                   }}>
-                    {/* Contact Information */}
-                    <View style={{ marginBottom: 15 }}>
-                      <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 8 }}>
-                        Contact Information
-                      </Text>
-                      {item.contact_person_name && (
-                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                          <Text style={{ fontWeight: '600' }}>Contact Person:</Text> {item.contact_person_name}
-                        </Text>
-                      )}
-                      {item.designation && (
-                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                          <Text style={{ fontWeight: '600' }}>Designation:</Text> {item.designation}
-                        </Text>
-                      )}
-                      {item.email && (
-                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                          <Text style={{ fontWeight: '600' }}>Email:</Text> {item.email}
-                        </Text>
-                      )}
-                      {item.phone && (
-                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                          <Text style={{ fontWeight: '600' }}>Phone:</Text> {item.phone}
-                        </Text>
-                      )}
-                      {item.mobile && (
-                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                          <Text style={{ fontWeight: '600' }}>Mobile:</Text> {item.mobile}
-                        </Text>
-                      )}
-                    </View>
-
-                    {/* Site Information */}
-                    <View style={{ marginBottom: 15 }}>
-                      <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 8 }}>
-                        Site Information
-                      </Text>
-                      {item.site_id && (
-                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                          <Text style={{ fontWeight: '600' }}>Site ID:</Text> {item.site_id}
-                        </Text>
-                      )}
-                      {item.site_address && (
-                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                          <Text style={{ fontWeight: '600' }}>Site Address:</Text> {item.site_address}
-                        </Text>
-                      )}
-                      {item.city && (
-                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                          <Text style={{ fontWeight: '600' }}>City:</Text> {item.city}
-                        </Text>
-                      )}
-                      {item.province_state_name && (
-                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                          <Text style={{ fontWeight: '600' }}>Province/State:</Text> {item.province_state_name}
-                        </Text>
-                      )}
-                      {item.sector && (
-                        <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                          <Text style={{ fontWeight: '600' }}>Sector:</Text> {item.sector}
-                        </Text>
-                      )}
-                    </View>
-
-                    {/* Additional Information */}
-                    {(item.branch_name || item.route_name) && (
-                      <View style={{ marginBottom: 15 }}>
-                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 8 }}>
-                          Additional Information
-                        </Text>
-                        {item.branch_name && (
-                          <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                            <Text style={{ fontWeight: '600' }}>Branch Name:</Text> {item.branch_name}
+                    {/* Compact Info Grid */}
+                    <View style={{ marginBottom: 16 }}>
+                      {item.contact_person_name ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="person" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1 }}>{item.contact_person_name}</Text>
+                        </View>
+                      ) : null}
+                      {item.designation ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="briefcase" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1 }}>{item.designation}</Text>
+                        </View>
+                      ) : null}
+                      {item.email ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="mail" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#3498db', flex: 1, fontWeight: '500' }}>{item.email}</Text>
+                        </View>
+                      ) : null}
+                      {(item.phone || item.mobile) ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="call" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1, fontWeight: '500' }}>{item.mobile || item.phone}</Text>
+                        </View>
+                      ) : null}
+                      {item.site_id ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="key" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1 }}>{item.site_id}</Text>
+                        </View>
+                      ) : null}
+                      {item.site_address ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'flex-start' }}>
+                          <Ionicons name="location" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18, marginTop: 2 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1, lineHeight: 18 }}>{item.site_address}</Text>
+                        </View>
+                      ) : null}
+                      {(item.city || item.province_state_name) ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="map" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1 }}>
+                            {[item.city, item.province_state_name].filter(Boolean).join(', ')}
                           </Text>
-                        )}
-                        {item.route_name && (
-                          <Text style={{ fontSize: 14, color: '#34495e', marginBottom: 4 }}>
-                            <Text style={{ fontWeight: '600' }}>Route Name:</Text> {item.route_name}
-                          </Text>
-                        )}
-                      </View>
-                    )}
+                        </View>
+                      ) : null}
+                      {item.sector ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="grid" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1 }}>{item.sector}</Text>
+                        </View>
+                      ) : null}
+                      {item.branch_name ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="business" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1 }}>{item.branch_name}</Text>
+                        </View>
+                      ) : null}
+                      {item.route_name ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="trail-sign" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1 }}>{item.route_name}</Text>
+                        </View>
+                      ) : null}
+                    </View>
                   </View>
                 )}
               </View>

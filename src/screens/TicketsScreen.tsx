@@ -592,43 +592,165 @@ const TicketsScreen: React.FC<TicketsScreenProps> = ({ onBack, onShowDetails }) 
                   />
                 </TouchableOpacity>
 
-                {/* Expanded Details */}
+                                {/* Expanded Details */}
                 {expandedTickets.has(item.id) && (
-                  <View style={globalStyles.ticketsExpandedContent}>
-                    <Text style={globalStyles.ticketsDetailText}>
-                      {item.reference} # Created at {item.dateTime} # Priority: {item.priority}
-                    </Text>
-                    <Text style={globalStyles.ticketsDetailText}>
-                      # Type: {item.amcType}, Site: {item.siteAddress}
-                    </Text>
-                    <Text style={globalStyles.ticketsDetailText}>
-                      Contact: {item.contact_person}, Mobile: {item.mobileNumber}
-                    </Text>
-                    {item.subject && (
-                      <Text style={globalStyles.ticketsDetailText}>
-                        Subject: {item.subject}
-                      </Text>
-                    )}
-                    {item.message && (
-                      <Text style={globalStyles.ticketsDetailText}>
-                        Message: {item.message}
-                      </Text>
-                    )}
+                  <View style={{
+                    backgroundColor: '#ffffff',
+                    marginHorizontal: 12,
+                    marginBottom: 12,
+                    borderRadius: 12,
+                    padding: 16,
+                    borderWidth: 1,
+                    borderColor: '#e8e8e8',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.08,
+                    shadowRadius: 8,
+                    elevation: 3,
+                  }}>
+                    {/* Status & Priority Badge - Compact */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                        <View style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: 4,
+                          backgroundColor: getStatusColor(item.status),
+                          marginRight: 8,
+                        }} />
+                        <Text style={{ fontSize: 14, fontWeight: '600', color: '#2c3e50' }}>{item.status}</Text>
+                      </View>
+                      {item.priority ? (
+                        <View style={{
+                          backgroundColor: item.priority.toLowerCase() === 'high' ? '#e74c3c' : item.priority.toLowerCase() === 'medium' ? '#f39c12' : '#3498db',
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                          borderRadius: 12,
+                        }}>
+                          <Text style={{ fontSize: 10, color: '#fff', fontWeight: '600' }}>
+                            {item.priority.toUpperCase()}
+                          </Text>
+                        </View>
+                      ) : null}
+                    </View>
 
-                    {/* Action Buttons */}
-                    <View style={globalStyles.ticketsActionButtons}>
+                    {/* Compact Info Grid */}
+                    <View style={{ marginBottom: 16 }}>
+                      {item.reference ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="pricetag" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1 }}>{item.reference}</Text>
+                        </View>
+                      ) : null}
+                      {item.dateTime ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="time" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1 }}>{item.dateTime}</Text>
+                        </View>
+                      ) : null}
+                      {item.contact_person ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="person" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1 }}>{item.contact_person}</Text>
+                        </View>
+                      ) : null}
+                      {item.mobileNumber ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="call" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#3498db', flex: 1, fontWeight: '500' }}>{item.mobileNumber}</Text>
+                        </View>
+                      ) : null}
+                      {item.amcType ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
+                          <Ionicons name="layers" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1 }}>{item.amcType}</Text>
+                        </View>
+                      ) : null}
+                      {item.siteAddress ? (
+                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'flex-start' }}>
+                          <Ionicons name="location" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18, marginTop: 2 }} />
+                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1, lineHeight: 18 }}>{item.siteAddress}</Text>
+                        </View>
+                      ) : null}
+                    </View>
+
+                    {/* Subject & Message - Compact */}
+                    {(item.subject || item.message) ? (
+                      <View style={{ marginBottom: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#f0f0f0' }}>
+                        {item.subject ? (
+                          <View style={{ marginBottom: 8 }}>
+                            <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 4 }}>Subject</Text>
+                            <Text style={{ fontSize: 14, color: '#2c3e50', fontWeight: '600' }}>{item.subject}</Text>
+                          </View>
+                        ) : null}
+                        {item.message ? (
+                          <View>
+                            <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 4 }}>Message</Text>
+                            <Text style={{ fontSize: 13, color: '#34495e', lineHeight: 18 }} numberOfLines={3}>
+                              {item.message}
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    ) : null}
+
+                    {/* Resolution - Compact (only if exists) */}
+                    {(item.technician_remark || item.solution) ? (
+                      <View style={{ marginBottom: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#f0f0f0' }}>
+                        {item.solution ? (
+                          <View style={{ marginBottom: 8 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                              <Ionicons name="checkmark-circle" size={14} color="#27ae60" style={{ marginRight: 6 }} />
+                              <Text style={{ fontSize: 11, color: '#7f8c8d' }}>Solution</Text>
+                            </View>
+                            <Text style={{ fontSize: 13, color: '#27ae60', fontWeight: '500', lineHeight: 18 }} numberOfLines={2}>
+                              {item.solution}
+                            </Text>
+                          </View>
+                        ) : null}
+                        {item.technician_remark ? (
+                          <View>
+                            <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 4 }}>Remark</Text>
+                            <Text style={{ fontSize: 13, color: '#34495e', lineHeight: 18 }} numberOfLines={2}>
+                              {item.technician_remark}
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    ) : null}
+
+                    {/* Action Buttons - Compact */}
+                    <View style={{ flexDirection: 'row', gap: 10, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#f0f0f0' }}>
                       <TouchableOpacity
-                        style={globalStyles.ticketsGoToDetailsButton}
+                        style={{
+                          flex: 1,
+                          backgroundColor: '#3498db',
+                          borderRadius: 8,
+                          paddingVertical: 10,
+                          alignItems: 'center',
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                        }}
                         onPress={() => handleGoToDetails(item)}
                       >
-                        <Text style={globalStyles.ticketsGoToDetailsButtonText}>Go to Details</Text>
+                        <Ionicons name="eye" size={16} color="#fff" style={{ marginRight: 6 }} />
+                        <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Details</Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity
-                        style={globalStyles.ticketsAssignButton}
+                        style={{
+                          flex: 1,
+                          backgroundColor: '#e74c3c',
+                          borderRadius: 8,
+                          paddingVertical: 10,
+                          alignItems: 'center',
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                        }}
                         onPress={() => handleUpdateStatus(item)}
                       >
-                        <Text style={globalStyles.ticketsAssignButtonText}>Update Status</Text>
+                        <Ionicons name="create" size={16} color="#fff" style={{ marginRight: 6 }} />
+                        <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Update</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
