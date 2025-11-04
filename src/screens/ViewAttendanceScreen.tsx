@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,13 @@ import {
   StatusBar,
   ScrollView,
   Dimensions,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
 import { AttendanceData, AttendanceStatus } from '../../types';
+import { getAttendanceList, AttendanceRecord } from '../utils/api';
 
 interface ViewAttendanceScreenProps {
   onBack: () => void;
@@ -19,17 +22,38 @@ interface ViewAttendanceScreenProps {
 const ViewAttendanceScreen: React.FC<ViewAttendanceScreenProps> = ({ onBack }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Mock attendance data
-  const attendanceData: AttendanceData = {
-    present: 0,
-    absent: 0,
-    weekOff: 0,
-    publicHoliday: 0,
-    halfDay: 0,
-    onLeave: 0,
-    presentOvertime: 0,
+  // Calculate attendance stats from fetched data
+  const calculateAttendanceStats = (records: AttendanceRecord[]): AttendanceData => {
+    const stats: AttendanceData = {
+      present: 0,
+      absent: 0,
+      weekOff: 0,
+      publicHoliday: 0,
+      halfDay: 0,
+      onLeave: 0,
+      presentOvertime: 0,
+    };
+
+    records.forEach((record) => {
+      if (record.is_checked_in && record.is_checked_out) {
+        stats.present++;
+        // Check if overtime (work duration > 8 hours, if available)
+        if (record.work_duration && record.work_duration > 8 * 60) {
+          stats.presentOvertime++;
+        }
+      } else if (record.is_checked_in && !record.is_checked_out) {
+        stats.halfDay++; // Checked in but not out yet
+      }
+      // Note: Absent, Week Off, Public Holiday, On Leave would need additional backend fields
+    });
+
+    return stats;
   };
+
+  const attendanceData = calculateAttendanceStats(attendanceRecords);
 
   const attendanceStatuses: AttendanceStatus[] = [
     { label: 'Present', count: attendanceData.present, color: '#2ecc71' },
@@ -40,6 +64,74 @@ const ViewAttendanceScreen: React.FC<ViewAttendanceScreenProps> = ({ onBack }) =
     { label: 'On Leave', count: attendanceData.onLeave, color: '#16a085' },
     { label: 'Present Overtime', count: attendanceData.presentOvertime, color: '#f39c12' },
   ];
+
+  // Fetch attendance records for the selected month
+  const fetchAttendanceRecords = async () => {
+    try {
+      setIsLoading(true);
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1; // getMonth() returns 0-11
+      const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+      
+      // Get last day of month
+      const lastDay = new Date(year, month, 0).getDate();
+      const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+      const response = await getAttendanceList({
+        start_date: startDate,
+        end_date: endDate,
+      });
+
+      setAttendanceRecords(response.results || []);
+    } catch (error: any) {
+      console.error('Error fetching attendance records:', error);
+      Alert.alert(
+        'Error',
+        error.message || 'Failed to fetch attendance records',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAttendanceRecords();
+  }, [currentDate]);
+
+  const formatDateTime = (dateString: string | null, timeString: string | null): string => {
+    if (!dateString && !timeString) return 'N/A';
+    
+    if (dateString && timeString) {
+      try {
+        const date = new Date(`${dateString}T${timeString}`);
+        return date.toLocaleString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      } catch (e) {
+        return `${dateString} ${timeString}`;
+      }
+    }
+    
+    if (dateString) {
+      try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        });
+      } catch (e) {
+        return dateString;
+      }
+    }
+    
+    return timeString || 'N/A';
+  };
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -92,6 +184,7 @@ const ViewAttendanceScreen: React.FC<ViewAttendanceScreenProps> = ({ onBack }) =
       newDate.setMonth(newDate.getMonth() + 1);
     }
     setCurrentDate(newDate);
+    setSelectedDate(null); // Reset selected date when changing months
   };
 
   const formatMonthYear = (date: Date) => {
@@ -201,6 +294,109 @@ const ViewAttendanceScreen: React.FC<ViewAttendanceScreenProps> = ({ onBack }) =
               </Text>
             </View>
           </View>
+        </View>
+
+        {/* Attendance Records List */}
+        <View style={{
+          backgroundColor: '#fff',
+          marginHorizontal: 12,
+          marginVertical: 12,
+          padding: 16,
+          borderRadius: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 3,
+        }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#2c3e50', marginBottom: 16 }}>
+            Attendance Records
+          </Text>
+          
+          {isLoading ? (
+            <View style={{ padding: 20, alignItems: 'center' }}>
+              <ActivityIndicator size="small" color="#3498db" />
+              <Text style={{ marginTop: 10, color: '#666' }}>Loading records...</Text>
+            </View>
+          ) : attendanceRecords.length === 0 ? (
+            <View style={{ padding: 20, alignItems: 'center' }}>
+              <Ionicons name="calendar-outline" size={48} color="#bdc3c7" />
+              <Text style={{ marginTop: 10, color: '#95a5a6', textAlign: 'center' }}>
+                No attendance records found for this month
+              </Text>
+            </View>
+          ) : (
+            attendanceRecords.map((record) => (
+              <View
+                key={record.id}
+                style={{
+                  backgroundColor: '#f8f9fa',
+                  borderRadius: 8,
+                  padding: 12,
+                  marginBottom: 12,
+                  borderLeftWidth: 4,
+                  borderLeftColor: record.is_checked_in && record.is_checked_out ? '#27ae60' : '#f39c12',
+                }}
+              >
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#2c3e50' }}>
+                    {record.check_in_date || 'N/A'}
+                  </Text>
+                  <View style={{
+                    backgroundColor: record.is_checked_in && record.is_checked_out ? '#27ae60' : '#f39c12',
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 4,
+                  }}>
+                    <Text style={{ fontSize: 12, color: '#fff', fontWeight: '600' }}>
+                      {record.is_checked_in && record.is_checked_out ? 'Complete' : 'Pending'}
+                    </Text>
+                  </View>
+                </View>
+                
+                {record.is_checked_in && (
+                  <View style={{ marginBottom: 8 }}>
+                    <Text style={{ fontSize: 12, color: '#7f8c8d', marginBottom: 4 }}>
+                      ✓ Check-in
+                    </Text>
+                    <Text style={{ fontSize: 13, color: '#34495e', marginLeft: 8 }}>
+                      Date: {record.check_in_date || 'N/A'}
+                    </Text>
+                    <Text style={{ fontSize: 13, color: '#34495e', marginLeft: 8 }}>
+                      Time: {record.check_in_time || 'N/A'}
+                    </Text>
+                  </View>
+                )}
+                
+                {record.is_checked_out && (
+                  <View style={{ marginBottom: 8 }}>
+                    <Text style={{ fontSize: 12, color: '#7f8c8d', marginBottom: 4 }}>
+                      ✓ Check-out
+                    </Text>
+                    <Text style={{ fontSize: 13, color: '#34495e', marginLeft: 8 }}>
+                      Date: {record.check_out_date || 'N/A'}
+                    </Text>
+                    <Text style={{ fontSize: 13, color: '#34495e', marginLeft: 8 }}>
+                      Time: {record.check_out_time || 'N/A'}
+                    </Text>
+                  </View>
+                )}
+                
+                {record.work_duration_display && (
+                  <View style={{
+                    marginTop: 8,
+                    paddingTop: 8,
+                    borderTopWidth: 1,
+                    borderTopColor: '#e0e0e0',
+                  }}>
+                    <Text style={{ fontSize: 13, color: '#3498db', fontWeight: '600' }}>
+                      Duration: {record.work_duration_display}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            ))
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
