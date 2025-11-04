@@ -7,6 +7,7 @@ import {
   ScrollView,
   SafeAreaView,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
@@ -150,7 +151,7 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
         {/* User Info */}
         <View style={globalStyles.drawerUserInfo}>
           <View style={globalStyles.drawerUserIconContainer}>
-            <Ionicons name="person-outline" size={24} color="#fff" />
+            <Ionicons name="person-outline" size={Platform.OS === 'web' ? 24 : 22} color="#fff" />
           </View>
           <View style={globalStyles.drawerUserDetails}>
             {loadingUserDetails ? (
@@ -168,7 +169,7 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
                 </Text>
                 {/* Phone Number */}
                 <View style={globalStyles.drawerPhoneInfo}>
-                  <Ionicons name="call-outline" size={16} color="#fff" />
+                  <Ionicons name="call-outline" size={Platform.OS === 'web' ? 16 : 14} color="#fff" />
                   <Text style={globalStyles.drawerPhoneNumber}>
                     {userDetails?.phone_number ||
                      userDetails?.profile?.phone_number ||
@@ -180,7 +181,7 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
                 {/* Email */}
                 {userDetails?.email && (
                   <View style={[globalStyles.drawerPhoneInfo, { marginTop: 4 }]}>
-                    <Ionicons name="mail-outline" size={16} color="#fff" />
+                    <Ionicons name="mail-outline" size={Platform.OS === 'web' ? 16 : 14} color="#fff" />
                     <Text style={globalStyles.drawerPhoneNumber}>
                       {userDetails.email}
                     </Text>
@@ -202,11 +203,11 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
           >
             <View style={globalStyles.drawerMenuItemLeft}>
               <View style={[globalStyles.drawerIconContainer, { backgroundColor: item.color }]}>
-                <Ionicons name={item.icon} size={20} color="#fff" />
+                <Ionicons name={item.icon} size={Platform.OS === 'web' ? 20 : 18} color="#fff" />
               </View>
               <Text style={globalStyles.drawerMenuText}>{item.title}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#bdc3c7" />
+            <Ionicons name="chevron-forward" size={Platform.OS === 'web' ? 16 : 14} color="#bdc3c7" />
           </TouchableOpacity>
         ))}
 
@@ -214,11 +215,11 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
         <TouchableOpacity style={globalStyles.drawerMenuItem} onPress={onLogout}>
           <View style={globalStyles.drawerMenuItemLeft}>
             <View style={[globalStyles.drawerIconContainer, { backgroundColor: '#e74c3c' }]}>
-              <Ionicons name="log-out-outline" size={20} color="#fff" />
+              <Ionicons name="log-out-outline" size={Platform.OS === 'web' ? 20 : 18} color="#fff" />
             </View>
             <Text style={globalStyles.drawerMenuText}>Logout</Text>
           </View>
-          <Ionicons name="chevron-forward" size={16} color="#bdc3c7" />
+          <Ionicons name="chevron-forward" size={Platform.OS === 'web' ? 16 : 14} color="#bdc3c7" />
         </TouchableOpacity>
 
         {/* Separator */}
@@ -230,7 +231,7 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
           onPress={() => handleMenuPress({ id: 8, title: 'App Tips', icon: 'bulb-outline', color: '#f39c12' })}
         >
           <View style={globalStyles.drawerAppTipsHeader}>
-            <Ionicons name="bulb-outline" size={20} color="#f39c12" />
+            <Ionicons name="bulb-outline" size={Platform.OS === 'web' ? 20 : 18} color="#f39c12" />
             <Text style={globalStyles.drawerAppTipsText}>App Tips</Text>
           </View>
         </TouchableOpacity>
