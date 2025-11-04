@@ -437,6 +437,8 @@ export const globalStyles = StyleSheet.create({
   complaintContainer: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   complaintHeader: {
@@ -469,6 +471,8 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 12,
     paddingTop: 20,
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   complaintFieldContainer: {
@@ -543,6 +547,8 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
     paddingHorizontal: 0,
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   leaveEmptyText: {
@@ -565,6 +571,8 @@ export const globalStyles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 20,
     backgroundColor: '#f8f9fa',
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   leaveCheckboxContainer: {
@@ -662,6 +670,8 @@ export const globalStyles = StyleSheet.create({
   travellingContent: {
     flex: 1,
     paddingVertical: 10,
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   travellingEmptyText: {
@@ -684,6 +694,8 @@ export const globalStyles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
     backgroundColor: '#f8f9fa',
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   travellingFieldContainer: {
@@ -798,6 +810,8 @@ export const globalStyles = StyleSheet.create({
   customerContainer: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   customerHeader: {
@@ -821,6 +835,8 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 12,
     paddingTop: 20,
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   customerFieldContainer: {
@@ -866,6 +882,8 @@ export const globalStyles = StyleSheet.create({
   amcContainer: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   amcHeader: {
@@ -889,6 +907,8 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 12,
     paddingTop: 20,
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   amcFieldContainer: {
@@ -1007,6 +1027,9 @@ export const globalStyles = StyleSheet.create({
   attendanceContainer: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    width: '100%',
+    alignSelf: 'stretch',
+    minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   attendanceHeader: {
     backgroundColor: '#3498db',
@@ -1029,6 +1052,8 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 12,
     paddingTop: 20,
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   attendanceCalendarCard: {
@@ -1346,6 +1371,8 @@ export const globalStyles = StyleSheet.create({
   routineMaintenanceContainer: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   routineMaintenanceHeader: {
@@ -1374,6 +1401,8 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 12,
     paddingTop: 20,
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   routineMaintenanceItem: {
@@ -1418,6 +1447,9 @@ export const globalStyles = StyleSheet.create({
   amcListContainer: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    width: '100%',
+    alignSelf: 'stretch',
+    minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   amcListHeader: {
     backgroundColor: '#3498db',
@@ -1445,6 +1477,8 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 12,
     paddingTop: 20,
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   amcListItem: {
@@ -1507,6 +1541,8 @@ export const globalStyles = StyleSheet.create({
   customersContainer: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   customersHeader: {
@@ -1534,6 +1570,8 @@ export const globalStyles = StyleSheet.create({
   customersContent: {
     flex: 1,
     backgroundColor: '#fefefe',
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   customersItem: {
@@ -1605,6 +1643,8 @@ export const globalStyles = StyleSheet.create({
   ticketsContainer: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   ticketsHeader: {
@@ -1658,6 +1698,8 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 12,
     paddingTop: 20,
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   ticketsItem: {
@@ -1755,6 +1797,8 @@ export const globalStyles = StyleSheet.create({
   markAttendanceContainer: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   markAttendanceHeader: {
@@ -1784,6 +1828,8 @@ export const globalStyles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 40,
     alignItems: 'center',
+    width: '100%',
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   markAttendanceCameraPreview: {
