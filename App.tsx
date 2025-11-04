@@ -57,13 +57,19 @@ export default function App() {
     return null;
   }
 
+  const appContainerStyle = {
+    flex: 1,
+    backgroundColor: '#3498db',
+    width: '100%',
+    alignSelf: 'stretch' as const,
+    ...(Platform.OS === 'web' && {
+      // Web-specific styles
+      maxWidth: '100%',
+    }),
+  };
+
   const AppContent = () => (
-    <SafeAreaView style={{ 
-      flex: 1, 
-      backgroundColor: '#3498db',
-      width: '100%',
-      alignSelf: 'stretch'
-    }}>
+    <SafeAreaView style={appContainerStyle}>
       <StatusBar 
         style="light" 
         backgroundColor="#3498db"
