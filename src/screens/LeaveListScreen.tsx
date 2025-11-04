@@ -17,10 +17,11 @@ import { getLeaveList, LeaveItem, deleteLeave, getLeaveCounts, LeaveCountsRespon
 interface LeaveListScreenProps {
   onBack: () => void;
   onAddNew: () => void;
+  onShowDetails?: (leave: LeaveItem) => void;
   reloadTrigger?: number; // ✅ Add a prop to trigger refresh after adding new leave
 }
 
-const LeaveListScreen: React.FC<LeaveListScreenProps> = ({ onBack, onAddNew, reloadTrigger }) => {
+const LeaveListScreen: React.FC<LeaveListScreenProps> = ({ onBack, onAddNew, onShowDetails, reloadTrigger }) => {
   const [leaveItems, setLeaveItems] = useState<LeaveItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -329,6 +330,11 @@ const LeaveListScreen: React.FC<LeaveListScreenProps> = ({ onBack, onAddNew, rel
                 shadowOpacity: 0.1,
                 shadowRadius: 4,
                 elevation: 3,
+              }}
+              onPress={() => {
+                if (onShowDetails) {
+                  onShowDetails(item);
+                }
               }}
               onLongPress={() => handleItemLongPress(item)}
             >

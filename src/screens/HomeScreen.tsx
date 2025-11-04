@@ -15,6 +15,7 @@ import AddComplaintScreen from './AddComplaintScreen';
 import MaterialRequisitionScreen from './MaterialRequisitionScreen';
 import LeaveListScreen from './LeaveListScreen';
 import LeaveScreen from './LeaveScreen';
+import LeaveDetailsScreen from './LeaveDetailsScreen';
 import TravellingListScreen from './TravellingListScreen';
 import TravellingScreen from './TravellingScreen';
 import AddCustomerScreen from './AddCustomerScreen';
@@ -39,6 +40,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
   const [showMaterialRequisitionScreen, setShowMaterialRequisitionScreen] = useState<boolean>(false);
   const [showLeaveListScreen, setShowLeaveListScreen] = useState<boolean>(false);
   const [showLeaveScreen, setShowLeaveScreen] = useState<boolean>(false);
+  const [showLeaveDetailsScreen, setShowLeaveDetailsScreen] = useState<boolean>(false);
+  const [selectedLeave, setSelectedLeave] = useState<any>(null);
+  const [editingLeave, setEditingLeave] = useState<any>(null);
   const [showTravellingListScreen, setShowTravellingListScreen] = useState<boolean>(false);
   const [showTravellingScreen, setShowTravellingScreen] = useState<boolean>(false);
   const [showAddCustomerScreen, setShowAddCustomerScreen] = useState<boolean>(false);
@@ -160,14 +164,58 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
   const handleBackFromLeave = (): void => {
     console.log('handleBackFromLeave called - going back to leave list');
     setShowLeaveScreen(false);
+    setEditingLeave(null);
     // Don't set showLeaveListScreen to false, keep it true to show the list
   };
 
   const handleApplyLeave = (): void => {
-    console.log('Leave applied successfully');
+    console.log('Leave applied/updated successfully');
     setShowLeaveScreen(false);
-    // Keep showing leave list screen so user can see their newly created request
-    // The leave list will refresh automatically when component mounts
+    const wasEditing = !!editingLeave;
+    setEditingLeave(null);
+    
+    // If editing, go back to details screen; otherwise, stay on list
+    if (wasEditing && selectedLeave) {
+      // Refresh the leave details by going back to list first, then to details
+      setShowLeaveDetailsScreen(false);
+      setSelectedLeave(null);
+      // The list will show and user can navigate back to details
+    }
+    // Keep showing leave list screen so user can see their newly created/updated request
+  };
+
+  const handleShowLeaveDetails = (leave: any): void => {
+    setSelectedLeave(leave);
+    setShowLeaveDetailsScreen(true);
+  };
+
+  const handleBackFromLeaveDetails = (): void => {
+    setShowLeaveDetailsScreen(false);
+    setSelectedLeave(null);
+  };
+
+  const handleEditLeave = (leave: any): void => {
+    setEditingLeave(leave);
+    setShowLeaveDetailsScreen(false);
+    setShowLeaveScreen(true);
+  };
+
+  const handleBackFromLeaveWhenEditing = (): void => {
+    setShowLeaveScreen(false);
+    // If editing, go back to details screen; otherwise, stay on list
+    if (editingLeave) {
+      // If we were editing from details, go back to details
+      if (selectedLeave) {
+        setShowLeaveDetailsScreen(true);
+      }
+    }
+    setEditingLeave(null);
+  };
+
+  const handleDeleteLeave = (): void => {
+    // Leave was deleted in details screen, just go back to list
+    setShowLeaveDetailsScreen(false);
+    setSelectedLeave(null);
   };
 
   const handleNavigateToTravelling = (): void => {
@@ -340,13 +388,26 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
     );
   }
 
-  // Show leave form screen if needed (check this first)
+  // Show leave details screen if needed (check this first)
+  if (showLeaveDetailsScreen && selectedLeave) {
+    return (
+      <LeaveDetailsScreen
+        leave={selectedLeave}
+        onBack={handleBackFromLeaveDetails}
+        onEdit={handleEditLeave}
+        onDelete={handleDeleteLeave}
+      />
+    );
+  }
+
+  // Show leave form screen if needed (check this second)
   if (showLeaveScreen) {
     console.log('Rendering LeaveScreen');
     return (
       <LeaveScreen
-        onBack={handleBackFromLeave}
+        onBack={handleBackFromLeaveWhenEditing}
         onApplyLeave={handleApplyLeave}
+        editingLeave={editingLeave}
       />
     );
   }
@@ -357,6 +418,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
       <LeaveListScreen
         onBack={handleBackFromLeaveList}
         onAddNew={handleAddNewLeave}
+        onShowDetails={handleShowLeaveDetails}
       />
     );
   }

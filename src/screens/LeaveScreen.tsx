@@ -15,16 +15,17 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
-import { createLeave, CreateLeaveData, getLeaveTypes, LeaveType } from '../utils/api';
+import { createLeave, updateLeave, CreateLeaveData, getLeaveTypes, LeaveType, LeaveItem } from '../utils/api';
 import { getEmailError } from '../utils/validation';
 import { useAlert } from '../contexts/AlertContext';
 
 interface LeaveScreenProps {
   onBack: () => void;
   onApplyLeave: () => void;
+  editingLeave?: LeaveItem | null;
 }
 
-const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave }) => {
+const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editingLeave }) => {
   const { showSuccessAlert, showErrorAlert } = useAlert();
   const [formData, setFormData] = useState({
     halfDay: false,
@@ -48,6 +49,39 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave }) => {
   useEffect(() => {
     fetchLeaveTypes();
   }, []);
+
+  // Populate form when editing
+  useEffect(() => {
+    if (editingLeave) {
+      setFormData({
+        halfDay: editingLeave.half_day || false,
+        leaveType: editingLeave.leave_type || '',
+        leaveTypeId: '',
+        fromDate: editingLeave.from_date || '',
+        toDate: editingLeave.to_date || '',
+        email: editingLeave.email || '',
+        reason: editingLeave.reason || '',
+      });
+      
+      // Set the selected leave type name for display
+      const leaveType = leaveTypes.find(lt => lt.key === editingLeave.leave_type);
+      if (leaveType) {
+        setSelectedLeaveTypeName(leaveType.name);
+      }
+    } else {
+      // Reset form for new leave
+      setFormData({
+        halfDay: false,
+        leaveType: '',
+        leaveTypeId: '',
+        fromDate: '',
+        toDate: '',
+        email: '',
+        reason: '',
+      });
+      setSelectedLeaveTypeName('');
+    }
+  }, [editingLeave, leaveTypes]);
 
   const fetchLeaveTypes = async (): Promise<void> => {
     setLoadingTypes(true);
@@ -350,37 +384,50 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave }) => {
     );
   };
 
-  const handleApplyLeave = async (): Promise<void> => {
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const leaveData: CreateLeaveData = {
-        half_day: formData.halfDay,
-        leave_type: formData.leaveType.trim(),  // ✅ now this sends backend key (e.g. 'casual')
-        from_date: formatDate(formData.fromDate.trim()),
-        to_date: formatDate(formData.toDate.trim()),
-        email: formData.email.trim(),
-        reason: formData.reason.trim(),
-      };
-
-      const result = await createLeave(leaveData);
-      
-      console.log('Leave result:', result); // Debug log
-      
-      if (result && result.success === true) {
-        showSuccessAlert(
-          result.message || 'Leave request submitted successfully',
-          () => {
-            onApplyLeave(); // Close the form and navigate back
-          }
-        );
-      } else {
-        const errorMessage = result?.message || result?.error || 'Failed to submit leave request';
-        showErrorAlert(errorMessage);
+    const handleApplyLeave = async (): Promise<void> => {
+      if (!validateForm()) {
+        return;
       }
+
+      setIsSubmitting(true);
+      try {
+        const leaveData: CreateLeaveData = {
+          half_day: formData.halfDay,
+          leave_type: formData.leaveType.trim(),  // ✅ now this sends backend key (e.g. 'casual')
+          from_date: formatDate(formData.fromDate.trim()),
+          to_date: formatDate(formData.toDate.trim()),
+          email: formData.email.trim(),
+          reason: formData.reason.trim(),
+        };
+
+                let result;
+        if (editingLeave) {
+          // Update existing leave
+          try {
+            const updatedLeave = await updateLeave(editingLeave.id, leaveData);
+            result = { success: true, message: 'Leave request updated successfully', leave: updatedLeave };
+            console.log('Leave updated:', updatedLeave);
+          } catch (error: any) {
+            showErrorAlert(error.message || 'Failed to update leave request');
+            return;
+          }
+        } else {
+          // Create new leave
+          result = await createLeave(leaveData);
+          console.log('Leave result:', result); // Debug log
+        }
+
+        if (result && result.success === true) {
+          showSuccessAlert(
+            result.message || (editingLeave ? 'Leave request updated successfully' : 'Leave request submitted successfully'),
+            () => {
+              onApplyLeave(); // Close the form and navigate back
+            }
+          );
+        } else {
+          const errorMessage = result?.message || result?.error || 'Failed to submit leave request';
+          showErrorAlert(errorMessage);
+        }
     } catch (error: any) {
       console.error('Error applying leave:', error);
       showErrorAlert(error.message || 'Failed to submit leave request. Please try again.');
@@ -399,7 +446,7 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave }) => {
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         
-        <Text style={globalStyles.leaveTitle}>Apply Leave</Text>
+        <Text style={globalStyles.leaveTitle}>{editingLeave ? 'Edit Leave' : 'Apply Leave'}</Text>
         
         <TouchableOpacity 
           onPress={handleApplyLeave} 
@@ -520,7 +567,7 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave }) => {
           {isSubmitting ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Text style={globalStyles.leaveApplyButtonText}>Apply Leave</Text>
+                          <Text style={globalStyles.leaveApplyButtonText}>{editingLeave ? 'Update Leave' : 'Apply Leave'}</Text>
           )}
         </TouchableOpacity>
       </ScrollView>
