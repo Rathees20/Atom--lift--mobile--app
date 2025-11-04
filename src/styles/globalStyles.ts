@@ -1,5 +1,9 @@
 import { StyleSheet, Platform, StatusBar, Dimensions } from 'react-native';
 
+// Get screen dimensions for mobile height calculations
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const WEB_SCREEN_HEIGHT = Platform.OS === 'web' ? (typeof window !== 'undefined' ? window.innerHeight : 800) : SCREEN_HEIGHT;
+
 // Get status bar height for consistent header padding
 const getStatusBarHeight = (): number => {
   if (Platform.OS === 'ios') {
@@ -158,6 +162,7 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
     width: '100%',
     alignSelf: 'stretch',
+    minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   homeHeader: {
     backgroundColor: '#3498db',
@@ -176,6 +181,7 @@ export const globalStyles = StyleSheet.create({
     paddingBottom: 50,
     width: '100%',
     alignSelf: 'stretch',
+    minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   homeMenuGrid: {
     flexDirection: 'row',
@@ -431,6 +437,7 @@ export const globalStyles = StyleSheet.create({
   complaintContainer: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   complaintHeader: {
     backgroundColor: '#3498db',
@@ -462,6 +469,7 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 12,
     paddingTop: 20,
+    minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   complaintFieldContainer: {
     marginBottom: 20,
@@ -535,6 +543,7 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
     paddingHorizontal: 0,
+    minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   leaveEmptyText: {
     fontSize: 18,
@@ -556,6 +565,7 @@ export const globalStyles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 20,
     backgroundColor: '#f8f9fa',
+    minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   leaveCheckboxContainer: {
     flexDirection: 'row',
@@ -652,6 +662,7 @@ export const globalStyles = StyleSheet.create({
   travellingContent: {
     flex: 1,
     paddingVertical: 10,
+    minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   travellingEmptyText: {
     fontSize: 18,
@@ -673,6 +684,7 @@ export const globalStyles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
     backgroundColor: '#f8f9fa',
+    minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   travellingFieldContainer: {
     marginBottom: 20,
@@ -786,6 +798,7 @@ export const globalStyles = StyleSheet.create({
   customerContainer: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   customerHeader: {
     backgroundColor: '#3498db',
@@ -808,6 +821,7 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 12,
     paddingTop: 20,
+    minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   customerFieldContainer: {
     marginBottom: 20,
@@ -852,6 +866,7 @@ export const globalStyles = StyleSheet.create({
   amcContainer: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   amcHeader: {
     backgroundColor: '#3498db',
@@ -874,6 +889,7 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 12,
     paddingTop: 20,
+    minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   amcFieldContainer: {
     marginBottom: 20,
@@ -1013,6 +1029,7 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 12,
     paddingTop: 20,
+    minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   attendanceCalendarCard: {
     backgroundColor: '#fff',
@@ -1329,6 +1346,7 @@ export const globalStyles = StyleSheet.create({
   routineMaintenanceContainer: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   routineMaintenanceHeader: {
     backgroundColor: '#3498db',
@@ -1356,6 +1374,7 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 12,
     paddingTop: 20,
+    minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   routineMaintenanceItem: {
     flexDirection: 'row',
@@ -1426,6 +1445,7 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 12,
     paddingTop: 20,
+    minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   amcListItem: {
     flexDirection: 'row',
@@ -1487,6 +1507,7 @@ export const globalStyles = StyleSheet.create({
   customersContainer: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   customersHeader: {
     backgroundColor: '#3498db',
@@ -1513,6 +1534,7 @@ export const globalStyles = StyleSheet.create({
   customersContent: {
     flex: 1,
     backgroundColor: '#fefefe',
+    minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   customersItem: {
     flexDirection: 'row',
@@ -1583,6 +1605,7 @@ export const globalStyles = StyleSheet.create({
   ticketsContainer: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   ticketsHeader: {
     backgroundColor: '#3498db',
@@ -1635,6 +1658,7 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 12,
     paddingTop: 20,
+    minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   ticketsItem: {
     backgroundColor: '#fff',
@@ -1731,6 +1755,7 @@ export const globalStyles = StyleSheet.create({
   markAttendanceContainer: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    minHeight: Platform.OS === 'web' ? WEB_SCREEN_HEIGHT : SCREEN_HEIGHT,
   },
   markAttendanceHeader: {
     backgroundColor: '#3498db',
@@ -1759,6 +1784,7 @@ export const globalStyles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 40,
     alignItems: 'center',
+    minHeight: Platform.OS === 'web' ? 'auto' : SCREEN_HEIGHT * 0.7,
   },
   markAttendanceCameraPreview: {
     width: '100%',
