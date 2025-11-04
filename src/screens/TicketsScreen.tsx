@@ -254,6 +254,17 @@ const TicketsScreen: React.FC<TicketsScreenProps> = ({ onBack, onShowDetails }) 
   const [solution, setSolution] = useState<string>('');
   const [technicianSignature, setTechnicianSignature] = useState<string>('');
   const [customerSignature, setCustomerSignature] = useState<string>('');
+  
+  // Filter states
+  const [showFilterModal, setShowFilterModal] = useState<boolean>(false);
+  const [filterStatus, setFilterStatus] = useState<string>('');
+  const [selectedFor, setSelectedFor] = useState<string>('');
+  const [showStatusDropdown, setShowStatusDropdown] = useState<boolean>(false);
+  const [showForDropdown, setShowForDropdown] = useState<boolean>(false);
+
+  // Filter options
+  const statusOptions = ['Open', 'On Hold', 'In Progress', 'Reopened', 'Closed', 'Shutdown'];
+  const forOptions = ['All', 'Today', 'Last 3 days', 'Last 7 days', 'Last 15 days', 'Last 30 days', 'Last 45 days'];
 
   // Try to load the filter image
   const filterImageSource = (() => {
@@ -387,9 +398,65 @@ const TicketsScreen: React.FC<TicketsScreenProps> = ({ onBack, onShowDetails }) 
     }
   };
 
+  // Calculate date range for filtering
+  const getDateRangeFilter = (dateRange: string): ((date: string) => boolean) => {
+    if (!dateRange || dateRange === 'All') {
+      return () => true;
+    }
+    
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    let daysAgo = 0;
+    switch (dateRange) {
+      case 'Today':
+        daysAgo = 0;
+        break;
+      case 'Last 3 days':
+        daysAgo = 3;
+        break;
+      case 'Last 7 days':
+        daysAgo = 7;
+        break;
+      case 'Last 15 days':
+        daysAgo = 15;
+        break;
+      case 'Last 30 days':
+        daysAgo = 30;
+        break;
+      case 'Last 45 days':
+        daysAgo = 45;
+        break;
+      default:
+        return () => true;
+    }
+    
+    const cutoffDate = new Date(today);
+    cutoffDate.setDate(cutoffDate.getDate() - daysAgo);
+    
+    return (dateString: string) => {
+      try {
+        const itemDate = new Date(dateString);
+        return itemDate >= cutoffDate;
+      } catch {
+        return true;
+      }
+    };
+  };
+
   const filteredTickets = ticketItems.filter((item) => {
+    // Search query filter
     const searchText = `${item.title} ${item.ticketId} ${item.status} ${item.amcType}`.toLowerCase();
-    return searchText.includes(searchQuery.toLowerCase());
+    const matchesSearch = searchText.includes(searchQuery.toLowerCase());
+    
+    // Status filter
+    const matchesStatus = !filterStatus || item.status.toLowerCase() === filterStatus.toLowerCase();
+    
+    // For filter (date range)
+    const dateRangeFilter = getDateRangeFilter(selectedFor);
+    const matchesFor = dateRangeFilter(item.dateTime);
+    
+    return matchesSearch && matchesStatus && matchesFor;
   });
 
   const getStatusColor = (status: string): string => {
@@ -415,7 +482,10 @@ const TicketsScreen: React.FC<TicketsScreenProps> = ({ onBack, onShowDetails }) 
           <TouchableOpacity style={globalStyles.ticketsSearchButton} onPress={handleSearchPress}>
             <Ionicons name={showSearchInput ? "close" : "search"} size={24} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity style={globalStyles.ticketsFilterButton}>
+          <TouchableOpacity 
+            style={globalStyles.ticketsFilterButton}
+            onPress={() => setShowFilterModal(true)}
+          >
             {filterImageSource && !imageError ? (
               <Image 
                 source={filterImageSource} 
@@ -789,6 +859,223 @@ const TicketsScreen: React.FC<TicketsScreenProps> = ({ onBack, onShowDetails }) 
             )}
           </View>
         </View>
+      </Modal>
+
+      {/* Filter Modal */}
+      <Modal
+        visible={showFilterModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowFilterModal(false)}
+      >
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            justifyContent: 'flex-end',
+          }}
+          activeOpacity={1}
+          onPress={() => setShowFilterModal(false)}
+        >
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#fff',
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              padding: 20,
+              maxHeight: '80%',
+            }}
+            activeOpacity={1}
+            onPress={() => {}}
+          >
+            <Text style={{
+              fontSize: 18,
+              fontWeight: 'bold',
+              marginBottom: 20,
+              color: '#2c3e50',
+              textAlign: 'center',
+            }}>
+              Tickets Filters
+            </Text>
+
+            {/* Status Filter */}
+            <View style={{ marginBottom: 15 }}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#fff',
+                  borderWidth: 1,
+                  borderColor: '#ddd',
+                  borderRadius: 5,
+                  padding: 12,
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+                onPress={() => {
+                  setShowStatusDropdown(!showStatusDropdown);
+                  setShowForDropdown(false);
+                }}
+              >
+                <Text style={{
+                  fontSize: 14,
+                  color: filterStatus ? '#2c3e50' : '#999',
+                }}>
+                  {filterStatus || 'Status'}
+                </Text>
+                <Ionicons
+                  name={showStatusDropdown ? "chevron-up" : "chevron-down"}
+                  size={20}
+                  color="#666"
+                />
+              </TouchableOpacity>
+              {showStatusDropdown && (
+                <View style={{
+                  backgroundColor: '#fff',
+                  borderWidth: 1,
+                  borderColor: '#ddd',
+                  borderRadius: 5,
+                  marginTop: 5,
+                  maxHeight: 200,
+                }}>
+                  <ScrollView nestedScrollEnabled={true}>
+                    <TouchableOpacity
+                      style={{
+                        padding: 12,
+                        borderBottomWidth: 1,
+                        borderBottomColor: '#f0f0f0',
+                      }}
+                      onPress={() => {
+                        setFilterStatus('');
+                        setShowStatusDropdown(false);
+                      }}
+                    >
+                      <Text style={{
+                        fontSize: 14,
+                        color: !filterStatus ? '#3498db' : '#2c3e50',
+                        fontWeight: !filterStatus ? 'bold' : 'normal',
+                      }}>
+                        All
+                      </Text>
+                    </TouchableOpacity>
+                    {statusOptions.map((status) => (
+                      <TouchableOpacity
+                        key={status}
+                        style={{
+                          padding: 12,
+                          borderBottomWidth: 1,
+                          borderBottomColor: '#f0f0f0',
+                        }}
+                        onPress={() => {
+                          setFilterStatus(status === filterStatus ? '' : status);
+                          setShowStatusDropdown(false);
+                        }}
+                      >
+                        <Text style={{
+                          fontSize: 14,
+                          color: filterStatus === status ? '#3498db' : '#2c3e50',
+                          fontWeight: filterStatus === status ? 'bold' : 'normal',
+                        }}>
+                          {status}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+
+            {/* For Filter */}
+            <View style={{ marginBottom: 20 }}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#fff',
+                  borderWidth: 1,
+                  borderColor: '#ddd',
+                  borderRadius: 5,
+                  padding: 12,
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+                onPress={() => {
+                  setShowForDropdown(!showForDropdown);
+                  setShowStatusDropdown(false);
+                }}
+              >
+                <Text style={{
+                  fontSize: 14,
+                  color: selectedFor ? '#2c3e50' : '#999',
+                }}>
+                  {selectedFor || 'For'}
+                </Text>
+                <Ionicons
+                  name={showForDropdown ? "chevron-up" : "chevron-down"}
+                  size={20}
+                  color="#666"
+                />
+              </TouchableOpacity>
+              {showForDropdown && (
+                <View style={{
+                  backgroundColor: '#fff',
+                  borderWidth: 1,
+                  borderColor: '#ddd',
+                  borderRadius: 5,
+                  marginTop: 5,
+                  maxHeight: 200,
+                }}>
+                  <ScrollView nestedScrollEnabled={true}>
+                    {forOptions.map((option) => (
+                      <TouchableOpacity
+                        key={option}
+                        style={{
+                          padding: 12,
+                          borderBottomWidth: 1,
+                          borderBottomColor: '#f0f0f0',
+                        }}
+                        onPress={() => {
+                          setSelectedFor(option === 'All' ? '' : (option === selectedFor ? '' : option));
+                          setShowForDropdown(false);
+                        }}
+                      >
+                        <Text style={{
+                          fontSize: 14,
+                          color: (selectedFor === option || (!selectedFor && option === 'All')) ? '#3498db' : '#2c3e50',
+                          fontWeight: (selectedFor === option || (!selectedFor && option === 'All')) ? 'bold' : 'normal',
+                        }}>
+                          {option}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+
+            {/* Search Button */}
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#3498db',
+                padding: 15,
+                borderRadius: 5,
+                alignItems: 'center',
+                marginTop: 10,
+              }}
+              onPress={() => {
+                setShowFilterModal(false);
+                setShowStatusDropdown(false);
+                setShowForDropdown(false);
+              }}
+            >
+              <Text style={{
+                color: '#fff',
+                fontSize: 16,
+                fontWeight: 'bold',
+              }}>
+                SEARCH
+              </Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );

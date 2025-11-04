@@ -7,10 +7,12 @@ import {
   StatusBar,
   Alert,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Camera, CameraType } from 'expo-camera';
 import { globalStyles } from '../styles/globalStyles';
+import { checkInAttendance } from '../utils/api';
 
 interface MarkAttendanceScreenProps {
   onBack: () => void;
@@ -18,9 +20,12 @@ interface MarkAttendanceScreenProps {
 
 const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) => {
   const [isSelfieTaken, setIsSelfieTaken] = useState<boolean>(false);
+  const [selfieFile, setSelfieFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [permission, requestPermission] = Camera.useCameraPermissions();
   const [facing, setFacing] = useState<CameraType>(CameraType.front);
   const [showCamera, setShowCamera] = useState<boolean>(false);
+  const [cameraRef, setCameraRef] = useState<any>(null);
 
   useEffect(() => {
     // Request camera permission on component mount
@@ -48,16 +53,34 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
     setShowCamera(true);
   };
 
-  const handleCaptureSelfie = (): void => {
-    // In a real app, this would capture the photo
-    // For now, we'll simulate taking a selfie
-    setShowCamera(false);
-    setIsSelfieTaken(true);
-    Alert.alert(
-      'Selfie Taken',
-      'Selfie has been captured successfully!',
-      [{ text: 'OK' }]
-    );
+  const handleCaptureSelfie = async (): Promise<void> => {
+    if (cameraRef) {
+      try {
+        console.log('Capturing selfie...');
+        const photo = await cameraRef.takePictureAsync({
+          quality: 0.7,
+          base64: false,
+        });
+
+        // Convert photo URI to File object for FormData
+        const response = await fetch(photo.uri);
+        const blob = await response.blob();
+        const file = new File([blob], 'selfie.jpg', { type: 'image/jpeg' });
+
+        setSelfieFile(file);
+        setShowCamera(false);
+        setIsSelfieTaken(true);
+
+        console.log('Selfie captured successfully');
+      } catch (error) {
+        console.error('Error capturing selfie:', error);
+        Alert.alert(
+          'Error',
+          'Failed to capture selfie. Please try again.',
+          [{ text: 'OK' }]
+        );
+      }
+    }
   };
 
 
@@ -65,8 +88,8 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
     setFacing(current => (current === CameraType.back ? CameraType.front : CameraType.back));
   };
 
-  const handleSubmit = (): void => {
-    if (!isSelfieTaken) {
+  const handleSubmit = async (): Promise<void> => {
+    if (!isSelfieTaken || !selfieFile) {
       Alert.alert(
         'Selfie Required',
         'Please take a selfie before submitting attendance.',
@@ -75,20 +98,43 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
       return;
     }
 
-    console.log('Submit attendance pressed');
-    Alert.alert(
-      'Attendance Marked',
-      'Your attendance has been marked successfully!',
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            setIsSelfieTaken(false);
-            onBack(); // Go back to home screen
+    setIsSubmitting(true);
+    console.log('Submitting attendance check-in...');
+
+    try {
+      const checkInData = {
+        selfie: selfieFile,
+        location: '', // Could add location functionality later
+        note: '',
+      };
+
+      const response = await checkInAttendance(checkInData);
+
+      console.log('Check-in successful:', response);
+      Alert.alert(
+        'Success',
+        'Your attendance has been marked successfully!',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setIsSelfieTaken(false);
+              setSelfieFile(null);
+              onBack(); // Go back to home screen
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    } catch (error: any) {
+      console.error('Check-in failed:', error);
+      Alert.alert(
+        'Error',
+        error.message || 'Failed to mark attendance. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -112,6 +158,7 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
             <Camera
               style={{ flex: 1 }}
               type={facing}
+              ref={(ref) => setCameraRef(ref)}
             >
               <View style={{
                 flex: 1,
@@ -188,12 +235,16 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
           <TouchableOpacity
             style={[
               globalStyles.markAttendanceSubmitButton,
-              !isSelfieTaken && globalStyles.markAttendanceButtonDisabled
+              (!isSelfieTaken || isSubmitting) && globalStyles.markAttendanceButtonDisabled
             ]}
             onPress={handleSubmit}
-            disabled={!isSelfieTaken}
+            disabled={!isSelfieTaken || isSubmitting}
           >
-            <Text style={globalStyles.markAttendanceButtonText}>Submit</Text>
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={globalStyles.markAttendanceButtonText}>Submit</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>

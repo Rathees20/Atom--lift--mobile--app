@@ -224,16 +224,30 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
 
       const result = await createAMC(amcData);
       
-      if (result.success) {
+      console.log('AMC creation result:', result); // Debug log
+      
+      // Get the message from result
+      const resultMessage = result.message || (result as any).msg || 'AMC created successfully';
+      
+      // Check if message indicates success (case-insensitive)
+      const isSuccessMessage = resultMessage.toLowerCase().includes('success') || 
+                               resultMessage.toLowerCase().includes('created successfully') ||
+                               resultMessage.toLowerCase().includes('successfully');
+      
+      // If no error was thrown and we got a result, treat as success
+      // Also check if message indicates success or if success field is true/undefined
+      if (result && (result.success === true || result.success === undefined || isSuccessMessage)) {
+        console.log('Showing success alert:', resultMessage); // Debug log
         showSuccessAlert(
-          result.message || 'AMC created successfully',
+          resultMessage,
           () => {
+            console.log('Success alert OK pressed, closing form'); // Debug log
             onSave(formData);
             onBack(); // Close the form after success
           }
         );
       } else {
-        showErrorAlert(result.message || 'Failed to create AMC');
+        showErrorAlert(resultMessage || 'Failed to create AMC');
       }
     } catch (error: any) {
       console.error('Error creating AMC:', error);

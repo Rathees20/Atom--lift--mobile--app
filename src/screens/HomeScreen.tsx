@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,10 @@ import {
   ScrollView,
   Modal,
   TextInput,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { HomeScreenProps, MenuItem } from '../../types';
 import CustomDrawer from '../components/CustomDrawer';
 import AddComplaintScreen from './AddComplaintScreen';
@@ -62,6 +64,103 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
   const [showTipsModal, setShowTipsModal] = useState<boolean>(false);
   const [showWorkCheckModal, setShowWorkCheckModal] = useState<boolean>(false);
   const [workCheckNote, setWorkCheckNote] = useState<string>('');
+
+  // Storage key for navigation state
+  const NAVIGATION_STATE_KEY = 'home_screen_navigation_state';
+
+  // Save navigation state to storage
+  const saveNavigationState = async () => {
+    try {
+      const navigationState = {
+        showComplaintScreen,
+        showMaterialRequisitionScreen,
+        showLeaveListScreen,
+        showLeaveScreen,
+        showLeaveDetailsScreen,
+        showTravellingListScreen,
+        showTravellingScreen,
+        showAddCustomerScreen,
+        showCreateAMCScreen,
+        showViewAttendanceScreen,
+        showRoutineMaintenanceScreen,
+        showTodayServicesScreen,
+        showThisMonthDueScreen,
+        showThisMonthOverdueScreen,
+        showLastMonthOverdueScreen,
+        showAMCListScreen,
+        showCustomersScreen,
+        showTicketsScreen,
+        showComplaintDetailsScreen,
+        showMarkAttendanceScreen,
+      };
+      await AsyncStorage.setItem(NAVIGATION_STATE_KEY, JSON.stringify(navigationState));
+    } catch (error) {
+      console.error('Error saving navigation state:', error);
+    }
+  };
+
+  // Restore navigation state from storage
+  const restoreNavigationState = async () => {
+    try {
+      const savedState = await AsyncStorage.getItem(NAVIGATION_STATE_KEY);
+      if (savedState) {
+        const navigationState = JSON.parse(savedState);
+        setShowComplaintScreen(navigationState.showComplaintScreen || false);
+        setShowMaterialRequisitionScreen(navigationState.showMaterialRequisitionScreen || false);
+        setShowLeaveListScreen(navigationState.showLeaveListScreen || false);
+        setShowLeaveScreen(navigationState.showLeaveScreen || false);
+        setShowLeaveDetailsScreen(navigationState.showLeaveDetailsScreen || false);
+        setShowTravellingListScreen(navigationState.showTravellingListScreen || false);
+        setShowTravellingScreen(navigationState.showTravellingScreen || false);
+        setShowAddCustomerScreen(navigationState.showAddCustomerScreen || false);
+        setShowCreateAMCScreen(navigationState.showCreateAMCScreen || false);
+        setShowViewAttendanceScreen(navigationState.showViewAttendanceScreen || false);
+        setShowRoutineMaintenanceScreen(navigationState.showRoutineMaintenanceScreen || false);
+        setShowTodayServicesScreen(navigationState.showTodayServicesScreen || false);
+        setShowThisMonthDueScreen(navigationState.showThisMonthDueScreen || false);
+        setShowThisMonthOverdueScreen(navigationState.showThisMonthOverdueScreen || false);
+        setShowLastMonthOverdueScreen(navigationState.showLastMonthOverdueScreen || false);
+        setShowAMCListScreen(navigationState.showAMCListScreen || false);
+        setShowCustomersScreen(navigationState.showCustomersScreen || false);
+        setShowTicketsScreen(navigationState.showTicketsScreen || false);
+        setShowComplaintDetailsScreen(navigationState.showComplaintDetailsScreen || false);
+        setShowMarkAttendanceScreen(navigationState.showMarkAttendanceScreen || false);
+      }
+    } catch (error) {
+      console.error('Error restoring navigation state:', error);
+    }
+  };
+
+  // Restore state on mount
+  useEffect(() => {
+    restoreNavigationState();
+  }, []);
+
+  // Save state whenever navigation state changes
+  useEffect(() => {
+    saveNavigationState();
+  }, [
+    showComplaintScreen,
+    showMaterialRequisitionScreen,
+    showLeaveListScreen,
+    showLeaveScreen,
+    showLeaveDetailsScreen,
+    showTravellingListScreen,
+    showTravellingScreen,
+    showAddCustomerScreen,
+    showCreateAMCScreen,
+    showViewAttendanceScreen,
+    showRoutineMaintenanceScreen,
+    showTodayServicesScreen,
+    showThisMonthDueScreen,
+    showThisMonthOverdueScreen,
+    showLastMonthOverdueScreen,
+    showAMCListScreen,
+    showCustomersScreen,
+    showTicketsScreen,
+    showComplaintDetailsScreen,
+    showMarkAttendanceScreen,
+  ]);
 
   const menuItems: MenuItem[] = [
     {

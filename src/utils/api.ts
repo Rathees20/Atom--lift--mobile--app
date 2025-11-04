@@ -1,6 +1,7 @@
 // API configuration
-//const API_BASE_URL = 'http://localhost:8000'; // Change this to your backend URL
+//const API_BASE_URL = 'https://atomlift.technuob.com' ; // Change this to your backend URL
 const API_BASE_URL = 'https://atomlift.technuob.com';
+
 // API endpoints
 export const API_ENDPOINTS = {
   GENERATE_OTP: `${API_BASE_URL}/auth/api/mobile/generate-otp/`,
@@ -40,6 +41,13 @@ export const API_ENDPOINTS = {
   // Travelling endpoints
   TRAVELLING_LIST: `${API_BASE_URL}/travelling/api/list/`,
   TRAVELLING_CREATE: `${API_BASE_URL}/travelling/api/create/`,
+  // Attendance endpoints
+  ATTENDANCE_CHECK_IN: `${API_BASE_URL}/attendance/api/attendance/check-in/`,
+  ATTENDANCE_WORK_CHECK_IN: `${API_BASE_URL}/attendance/api/attendance/work-check-in/`,
+  ATTENDANCE_CHECK_OUT: `${API_BASE_URL}/attendance/api/attendance/check-out/`,
+  ATTENDANCE_LIST: `${API_BASE_URL}/attendance/api/attendance/list/`,
+  ATTENDANCE_TODAY: `${API_BASE_URL}/attendance/api/attendance/today/`,
+  ATTENDANCE_DETAIL: `${API_BASE_URL}/attendance/api/attendance/`,
 };
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -1265,4 +1273,271 @@ export const getLeaveCounts = async (): Promise<LeaveCountsResponse> => {
     // Return empty counts on error, don't throw
     return { counts: [] };
   }
+};
+
+// Attendance interfaces and API functions
+export interface AttendanceUser {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+  full_name: string;
+  phone_number?: string;
+}
+
+export interface AttendanceRecord {
+  id: number;
+  user: number;
+  user_detail: AttendanceUser;
+  check_in_time: string | null;
+  check_in_date: string | null;
+  check_in_selfie: string | null;
+  check_in_location: string | null;
+  check_in_note: string | null;
+  check_out_time: string | null;
+  check_out_date: string | null;
+  check_out_location: string | null;
+  check_out_note: string | null;
+  is_checked_in: boolean;
+  is_checked_out: boolean;
+  work_duration: number | null;
+  work_duration_display: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CheckInData {
+  selfie?: File | null;
+  location?: string;
+  note?: string;
+}
+
+export interface WorkCheckInData {
+  note?: string;
+}
+
+export interface CheckOutData {
+  location?: string;
+  note?: string;
+}
+
+export interface AttendanceListResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: AttendanceRecord[];
+}
+
+export interface TodayAttendanceResponse {
+  attendance: AttendanceRecord | null;
+  has_checked_in: boolean;
+  has_checked_out: boolean;
+  message?: string;
+}
+
+export interface AttendanceApiResponse {
+  message: string;
+  attendance: AttendanceRecord;
+}
+
+// Attendance API functions
+export const checkInAttendance = async (checkInData: CheckInData): Promise<AttendanceApiResponse> => {
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error('No authentication token available');
+  }
+
+  const formData = new FormData();
+
+  // Add optional fields if provided
+  if (checkInData.selfie) {
+    formData.append('selfie', checkInData.selfie);
+  }
+  if (checkInData.location) {
+    formData.append('location', checkInData.location);
+  }
+  if (checkInData.note) {
+    formData.append('note', checkInData.note);
+  }
+
+  const response = await fetch(API_ENDPOINTS.ATTENDANCE_CHECK_IN, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Token ${token}`,
+      // Don't set Content-Type for FormData, let browser set it with boundary
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error: ErrorResponse = await response.json();
+    throw new Error(error.error || 'Failed to check in');
+  }
+
+  return response.json();
+};
+
+export const workCheckInAttendance = async (workCheckInData: WorkCheckInData): Promise<AttendanceApiResponse> => {
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error('No authentication token available');
+  }
+
+  const response = await fetch(API_ENDPOINTS.ATTENDANCE_WORK_CHECK_IN, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Token ${token}`,
+    },
+    body: JSON.stringify(workCheckInData),
+  });
+
+  if (!response.ok) {
+    const error: ErrorResponse = await response.json();
+    throw new Error(error.error || 'Failed to complete work check-in');
+  }
+
+  return response.json();
+};
+
+export const checkOutAttendance = async (checkOutData: CheckOutData): Promise<AttendanceApiResponse> => {
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error('No authentication token available');
+  }
+
+  const response = await fetch(API_ENDPOINTS.ATTENDANCE_CHECK_OUT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Token ${token}`,
+    },
+    body: JSON.stringify(checkOutData),
+  });
+
+  if (!response.ok) {
+    const error: ErrorResponse = await response.json();
+    throw new Error(error.error || 'Failed to check out');
+  }
+
+  return response.json();
+};
+
+export const getAttendanceList = async (params?: {
+  date?: string;
+  start_date?: string;
+  end_date?: string;
+  q?: string;
+  page?: number;
+  page_size?: number;
+}): Promise<AttendanceListResponse> => {
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error('No authentication token available');
+  }
+
+  const queryParams = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryParams.append(key, value.toString());
+      }
+    });
+  }
+
+  const url = `${API_ENDPOINTS.ATTENDANCE_LIST}?${queryParams.toString()}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Token ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error: ErrorResponse = await response.json();
+    throw new Error(error.error || 'Failed to fetch attendance list');
+  }
+
+  const data = await response.json();
+  console.log('Attendance list API returned data:', data);
+
+  // Handle paginated response structure
+  if (data.results && Array.isArray(data.results)) {
+    return data;
+  }
+
+  // Handle direct array response (non-paginated)
+  if (Array.isArray(data)) {
+    return {
+      count: data.length,
+      next: null,
+      previous: null,
+      results: data
+    };
+  }
+
+  // Handle nested attendance_records structure
+  if (data.attendance_records && Array.isArray(data.attendance_records)) {
+    return {
+      count: data.count || data.attendance_records.length,
+      next: data.next || null,
+      previous: data.previous || null,
+      results: data.attendance_records
+    };
+  }
+
+  // Fallback
+  console.warn('Unexpected attendance list response structure:', data);
+  return {
+    count: 0,
+    next: null,
+    previous: null,
+    results: []
+  };
+};
+
+export const getTodayAttendance = async (): Promise<TodayAttendanceResponse> => {
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error('No authentication token available');
+  }
+
+  const response = await fetch(API_ENDPOINTS.ATTENDANCE_TODAY, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Token ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error: ErrorResponse = await response.json();
+    throw new Error(error.error || 'Failed to fetch today\'s attendance');
+  }
+
+  return response.json();
+};
+
+export const getAttendanceDetail = async (id: number): Promise<{ attendance: AttendanceRecord }> => {
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error('No authentication token available');
+  }
+
+  const response = await fetch(`${API_ENDPOINTS.ATTENDANCE_DETAIL}${id}/`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Token ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error: ErrorResponse = await response.json();
+    throw new Error(error.error || 'Failed to fetch attendance detail');
+  }
+
+  return response.json();
 };
