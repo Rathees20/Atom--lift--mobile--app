@@ -9,7 +9,7 @@ const getStatusBarHeight = (): number => {
   }
 };
 
-const HEADER_PADDING_TOP = getStatusBarHeight() + 10;
+const HEADER_PADDING_TOP = Platform.OS === 'web' ? 16 : Math.max(StatusBar.currentHeight || 0, 20) + 5;
 
 export const globalStyles = StyleSheet.create({
   // Login Screen Styles
@@ -161,8 +161,8 @@ export const globalStyles = StyleSheet.create({
   },
   homeHeader: {
     backgroundColor: '#3498db',
-    paddingTop: 52,
-    paddingBottom: 20,
+    paddingTop: Platform.OS === 'web' ? 20 : Math.max(StatusBar.currentHeight || 0, 20) + 8,
+    paddingBottom: Platform.OS === 'web' ? 16 : 12,
     paddingHorizontal: 12,
   },
   homeHeaderBottom: {
@@ -438,8 +438,8 @@ export const globalStyles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingTop: HEADER_PADDING_TOP,
-    paddingBottom: 16,
+    paddingTop: Platform.OS === 'web' ? 16 : Math.max(StatusBar.currentHeight || 0, 20) + 5,
+    paddingBottom: Platform.OS === 'web' ? 14 : 12,
   },
   complaintBackButton: {
     padding: 8,
@@ -793,8 +793,8 @@ export const globalStyles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingTop: HEADER_PADDING_TOP,
-    paddingBottom: 16,
+    paddingTop: Platform.OS === 'web' ? 16 : Math.max(StatusBar.currentHeight || 0, 20) + 5,
+    paddingBottom: Platform.OS === 'web' ? 14 : 12,
   },
   customerBackButton: {
     padding: 8,
@@ -859,8 +859,8 @@ export const globalStyles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingTop: HEADER_PADDING_TOP,
-    paddingBottom: 16,
+    paddingTop: Platform.OS === 'web' ? 16 : Math.max(StatusBar.currentHeight || 0, 20) + 5,
+    paddingBottom: Platform.OS === 'web' ? 14 : 12,
   },
   amcBackButton: {
     padding: 8,
@@ -998,8 +998,8 @@ export const globalStyles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingTop: HEADER_PADDING_TOP,
-    paddingBottom: 16,
+    paddingTop: Platform.OS === 'web' ? 16 : Math.max(StatusBar.currentHeight || 0, 20) + 5,
+    paddingBottom: Platform.OS === 'web' ? 14 : 12,
   },
   attendanceBackButton: {
     padding: 8,
@@ -1335,8 +1335,8 @@ export const globalStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingTop: HEADER_PADDING_TOP,
-    paddingBottom: 16,
+    paddingTop: Platform.OS === 'web' ? 16 : Math.max(StatusBar.currentHeight || 0, 20) + 5,
+    paddingBottom: Platform.OS === 'web' ? 14 : 12,
   },
   routineMaintenanceBackButton: {
     padding: 8,
@@ -1405,8 +1405,8 @@ export const globalStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingTop: HEADER_PADDING_TOP,
-    paddingBottom: 16,
+    paddingTop: Platform.OS === 'web' ? 16 : Math.max(StatusBar.currentHeight || 0, 20) + 5,
+    paddingBottom: Platform.OS === 'web' ? 14 : 12,
   },
   amcListBackButton: {
     padding: 8,
@@ -1493,8 +1493,8 @@ export const globalStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingTop: HEADER_PADDING_TOP,
-    paddingBottom: 16,
+    paddingTop: Platform.OS === 'web' ? 16 : Math.max(StatusBar.currentHeight || 0, 20) + 5,
+    paddingBottom: Platform.OS === 'web' ? 14 : 12,
   },
   customersBackButton: {
     padding: 8,
@@ -1589,8 +1589,8 @@ export const globalStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingTop: HEADER_PADDING_TOP,
-    paddingBottom: 16,
+    paddingTop: Platform.OS === 'web' ? 16 : Math.max(StatusBar.currentHeight || 0, 20) + 5,
+    paddingBottom: Platform.OS === 'web' ? 14 : 12,
   },
   ticketsBackButton: {
     padding: 8,
@@ -1737,8 +1737,8 @@ export const globalStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingTop: HEADER_PADDING_TOP,
-    paddingBottom: 16,
+    paddingTop: Platform.OS === 'web' ? 16 : Math.max(StatusBar.currentHeight || 0, 20) + 5,
+    paddingBottom: Platform.OS === 'web' ? 14 : 12,
   },
   markAttendanceBackButton: {
     padding: 8,
