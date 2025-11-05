@@ -8,6 +8,8 @@ import {
   SafeAreaView,
   ActivityIndicator,
   Platform,
+  Image,
+  ImageSourcePropType,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
@@ -17,7 +19,8 @@ import { fetchUserDetails, UserDetails } from '../utils/api';
 interface DrawerItem {
   id: number;
   title: string;
-  icon: keyof typeof import('@expo/vector-icons').Ionicons.glyphMap;
+  icon?: keyof typeof import('@expo/vector-icons').Ionicons.glyphMap;
+  image?: ImageSourcePropType;
   color: string;
 }
 
@@ -76,43 +79,43 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
     {
       id: 1,
       title: 'Add Complaint',
-      icon: 'call-outline' as const,
+      image: require('../assets/add complaint.png'),
       color: '#3498db',
     },
     {
       id: 2,
       title: 'Material Requisition',
-      icon: 'add-circle-outline' as const,
+      image: require('../assets/material  request.png'),
       color: '#9b59b6',
     },
     {
       id: 3,
       title: 'Leave',
-      icon: 'umbrella-outline' as const,
+      image: require('../assets/leave.png'),
       color: '#e67e22',
     },
     {
       id: 4,
       title: 'Travelling',
-      icon: 'airplane-outline' as const,
+      image: require('../assets/travelling.png'),
       color: '#1abc9c',
     },
     {
       id: 5,
       title: 'Add Customer',
-      icon: 'person-add-outline' as const,
+      image: require('../assets/add customer.png'),
       color: '#e74c3c',
     },
     {
       id: 6,
       title: 'Create AMC',
-      icon: 'calendar-outline' as const,
+      image: require('../assets/Create Amc.png'),
       color: '#f39c12',
     },
     {
       id: 7,
       title: 'View Attendance',
-      icon: 'pie-chart-outline' as const,
+      image: require('../assets/View attendence.png'),
       color: '#2ecc71',
     },
   ];
@@ -169,7 +172,11 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
                 </Text>
                 {/* Phone Number */}
                 <View style={globalStyles.drawerPhoneInfo}>
-                  <Ionicons name="call-outline" size={Platform.OS === 'web' ? 16 : 14} color="#fff" />
+                  <Image 
+                    source={require('../assets/phone.png')} 
+                    style={{ width: Platform.OS === 'web' ? 16 : 14, height: Platform.OS === 'web' ? 16 : 14 }}
+                    resizeMode="contain"
+                  />
                   <Text style={globalStyles.drawerPhoneNumber}>
                     {userDetails?.phone_number ||
                      userDetails?.profile?.phone_number ||
@@ -181,7 +188,11 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
                 {/* Email */}
                 {userDetails?.email && (
                   <View style={[globalStyles.drawerPhoneInfo, { marginTop: 4 }]}>
-                    <Ionicons name="mail-outline" size={Platform.OS === 'web' ? 16 : 14} color="#fff" />
+                    <Image 
+                      source={require('../assets/mail.png')} 
+                      style={{ width: Platform.OS === 'web' ? 16 : 14, height: Platform.OS === 'web' ? 16 : 14 }}
+                      resizeMode="contain"
+                    />
                     <Text style={globalStyles.drawerPhoneNumber}>
                       {userDetails.email}
                     </Text>
@@ -202,8 +213,16 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
             onPress={() => handleMenuPress(item)}
           >
             <View style={globalStyles.drawerMenuItemLeft}>
-              <View style={[globalStyles.drawerIconContainer, { backgroundColor: item.color }]}>
-                <Ionicons name={item.icon} size={Platform.OS === 'web' ? 20 : 18} color="#fff" />
+              <View style={globalStyles.drawerIconContainer}>
+                {item.image ? (
+                  <Image 
+                    source={item.image} 
+                    style={{ width: Platform.OS === 'web' ? 20 : 18, height: Platform.OS === 'web' ? 20 : 18 }}
+                    resizeMode="contain"
+                  />
+                ) : item.icon ? (
+                  <Ionicons name={item.icon} size={Platform.OS === 'web' ? 20 : 18} color="#fff" />
+                ) : null}
               </View>
               <Text style={globalStyles.drawerMenuText}>{item.title}</Text>
             </View>
@@ -214,8 +233,12 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
         {/* Logout Item */}
         <TouchableOpacity style={globalStyles.drawerMenuItem} onPress={onLogout}>
           <View style={globalStyles.drawerMenuItemLeft}>
-            <View style={[globalStyles.drawerIconContainer, { backgroundColor: '#e74c3c' }]}>
-              <Ionicons name="log-out-outline" size={Platform.OS === 'web' ? 20 : 18} color="#fff" />
+            <View style={globalStyles.drawerIconContainer}>
+              <Image 
+                source={require('../assets/logout.png')} 
+                style={{ width: Platform.OS === 'web' ? 20 : 18, height: Platform.OS === 'web' ? 20 : 18 }}
+                resizeMode="contain"
+              />
             </View>
             <Text style={globalStyles.drawerMenuText}>Logout</Text>
           </View>
