@@ -13,12 +13,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { Camera, CameraType } from 'expo-camera';
 import { globalStyles } from '../styles/globalStyles';
 import { checkInAttendance, checkOutAttendance, getTodayAttendance, AttendanceRecord } from '../utils/api';
+import { useAlert } from '../contexts/AlertContext';
+import { formatTime } from '../utils/validation';
 
 interface MarkAttendanceScreenProps {
   onBack: () => void;
 }
 
 const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) => {
+  const { showSuccessAlert, showErrorAlert } = useAlert();
   const [isSelfieTaken, setIsSelfieTaken] = useState<boolean>(false);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -97,11 +100,7 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
         console.log('Selfie captured successfully');
       } catch (error) {
         console.error('Error capturing selfie:', error);
-        Alert.alert(
-          'Error',
-          'Failed to capture selfie. Please try again.',
-          [{ text: 'OK' }]
-        );
+        showErrorAlert('Failed to capture selfie. Please try again.');
       }
     }
   };
@@ -113,11 +112,7 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
 
   const handleCheckIn = async (): Promise<void> => {
     if (!isSelfieTaken || !selfieFile) {
-      Alert.alert(
-        'Selfie Required',
-        'Please take a selfie before submitting attendance.',
-        [{ text: 'OK' }]
-      );
+      showErrorAlert('Please take a selfie before submitting attendance.');
       return;
     }
 
@@ -134,28 +129,32 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
       const response = await checkInAttendance(checkInData);
 
       console.log('Check-in successful:', response);
-      Alert.alert(
-        'Success',
+      
+      // Update state immediately to show check-out button
+      setIsSelfieTaken(false);
+      setSelfieFile(null);
+      
+      // Update attendance data from response
+      if (response.attendance) {
+        setTodayAttendance(response.attendance);
+        // Use the actual attendance data to set check-in status
+        setHasCheckedIn(response.attendance.is_checked_in || true);
+        setHasCheckedOut(response.attendance.is_checked_out || false);
+      } else {
+        // Fallback: if no attendance data, assume check-in was successful
+        setHasCheckedIn(true);
+      }
+      
+      showSuccessAlert(
         'Your attendance has been marked successfully!',
-        [
-          {
-            text: 'OK',
-            onPress: async () => {
-              setIsSelfieTaken(false);
-              setSelfieFile(null);
-              // Refresh today's attendance status
-              await fetchTodayAttendance();
-            },
-          },
-        ]
+        async () => {
+          // Refresh today's attendance status to get latest data
+          await fetchTodayAttendance();
+        }
       );
     } catch (error: any) {
       console.error('Check-in failed:', error);
-      Alert.alert(
-        'Error',
-        error.message || 'Failed to mark attendance. Please try again.',
-        [{ text: 'OK' }]
-      );
+      showErrorAlert(error.message || 'Failed to mark attendance. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -174,26 +173,28 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
       const response = await checkOutAttendance(checkOutData);
 
       console.log('Check-out successful:', response);
-      Alert.alert(
-        'Success',
+      
+      // Update state immediately with attendance data from response
+      if (response.attendance) {
+        setTodayAttendance(response.attendance);
+        // Use the actual attendance data to set check-out status
+        setHasCheckedIn(response.attendance.is_checked_in || false);
+        setHasCheckedOut(response.attendance.is_checked_out || true);
+      } else {
+        // Fallback: if no attendance data, assume check-out was successful
+        setHasCheckedOut(true);
+      }
+      
+      showSuccessAlert(
         'Your check-out has been marked successfully!',
-        [
-          {
-            text: 'OK',
-            onPress: async () => {
-              // Refresh today's attendance status
-              await fetchTodayAttendance();
-            },
-          },
-        ]
+        () => {
+          // Close the page after successful check-out
+          onBack();
+        }
       );
     } catch (error: any) {
       console.error('Check-out failed:', error);
-      Alert.alert(
-        'Error',
-        error.message || 'Failed to check out. Please try again.',
-        [{ text: 'OK' }]
-      );
+      showErrorAlert(error.message || 'Failed to check out. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -271,7 +272,7 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
                   Date: {todayAttendance.check_in_date || 'N/A'}
                 </Text>
                 <Text style={{ fontSize: 13, color: '#34495e' }}>
-                  Time: {todayAttendance.check_in_time || 'N/A'}
+                  Time: {formatTime(todayAttendance.check_in_time)}
                 </Text>
               </View>
             )}
@@ -284,7 +285,7 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
                   Date: {todayAttendance.check_out_date || 'N/A'}
                 </Text>
                 <Text style={{ fontSize: 13, color: '#34495e' }}>
-                  Time: {todayAttendance.check_out_time || 'N/A'}
+                  Time: {formatTime(todayAttendance.check_out_time)}
                 </Text>
               </View>
             )}

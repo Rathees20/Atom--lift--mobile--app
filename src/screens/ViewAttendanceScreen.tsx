@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
 import { AttendanceData, AttendanceStatus } from '../../types';
 import { getAttendanceList, AttendanceRecord } from '../utils/api';
+import { formatTime } from '../utils/validation';
 
 interface ViewAttendanceScreenProps {
   onBack: () => void;
@@ -363,7 +364,7 @@ const ViewAttendanceScreen: React.FC<ViewAttendanceScreenProps> = ({ onBack }) =
                       Date: {record.check_in_date || 'N/A'}
                     </Text>
                     <Text style={{ fontSize: 13, color: '#34495e', marginLeft: 8 }}>
-                      Time: {record.check_in_time || 'N/A'}
+                      Time: {formatTime(record.check_in_time)}
                     </Text>
                   </View>
                 )}
@@ -377,7 +378,7 @@ const ViewAttendanceScreen: React.FC<ViewAttendanceScreenProps> = ({ onBack }) =
                       Date: {record.check_out_date || 'N/A'}
                     </Text>
                     <Text style={{ fontSize: 13, color: '#34495e', marginLeft: 8 }}>
-                      Time: {record.check_out_time || 'N/A'}
+                      Time: {formatTime(record.check_out_time)}
                     </Text>
                   </View>
                 )}

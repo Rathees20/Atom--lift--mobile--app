@@ -85,3 +85,44 @@ export const getEmailError = (email: string): string => {
   return '';
 };
 
+/**
+ * Formats time string to 24-hour format (HH:mm) matching the hamburger menu format
+ * @param timeString - The time string from API (can be time only, datetime, or ISO string)
+ * @returns Formatted time in HH:mm format or 'N/A' if invalid
+ */
+export const formatTime = (timeString: string | null | undefined): string => {
+  if (!timeString || !timeString.trim()) {
+    return 'N/A';
+  }
+
+  try {
+    let date: Date;
+    
+    // If it's just a time string (HH:mm:ss or HH:mm), try to parse it
+    if (/^\d{2}:\d{2}(:\d{2})?$/.test(timeString.trim())) {
+      // It's a time-only string, create a date with today's date
+      const [hours, minutes] = timeString.trim().split(':');
+      date = new Date();
+      date.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+    } else {
+      // Try to parse as a full date/time string
+      date = new Date(timeString);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return timeString; // Return original if can't parse
+      }
+    }
+    
+    // Format to 24-hour format (HH:mm) matching hamburger menu
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  } catch (error) {
+    console.error('Error formatting time:', error);
+    return timeString; // Return original string on error
+  }
+};
+
