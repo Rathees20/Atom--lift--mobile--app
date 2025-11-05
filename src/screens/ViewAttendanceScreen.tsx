@@ -13,7 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
 import { AttendanceData, AttendanceStatus } from '../../types';
-import { getAttendanceList, AttendanceRecord } from '../utils/api';
+import { getAttendanceList, AttendanceRecord, fetchUserDetails, UserDetails } from '../utils/api';
 import { formatTime } from '../utils/validation';
 
 interface ViewAttendanceScreenProps {
@@ -25,6 +25,7 @@ const ViewAttendanceScreen: React.FC<ViewAttendanceScreenProps> = ({ onBack }) =
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
 
   // Calculate attendance stats from fetched data
   const calculateAttendanceStats = (records: AttendanceRecord[]): AttendanceData => {
@@ -99,6 +100,41 @@ const ViewAttendanceScreen: React.FC<ViewAttendanceScreenProps> = ({ onBack }) =
   useEffect(() => {
     fetchAttendanceRecords();
   }, [currentDate]);
+
+  // Fetch user details to display employee name
+  useEffect(() => {
+    const loadUserDetails = async () => {
+      try {
+        const details = await fetchUserDetails();
+        setUserDetails(details);
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+        // Silently fail, component will show fallback
+      }
+    };
+
+    loadUserDetails();
+  }, []);
+
+  // Get employee name with fallback logic (same as CustomDrawer)
+  const getEmployeeName = (): string => {
+    if (userDetails?.full_name) {
+      return userDetails.full_name;
+    }
+    if (userDetails?.first_name && userDetails?.last_name) {
+      return `${userDetails.first_name} ${userDetails.last_name}`.trim();
+    }
+    if (userDetails?.first_name) {
+      return userDetails.first_name;
+    }
+    if (userDetails?.username) {
+      return userDetails.username;
+    }
+    if (userDetails?.email) {
+      return userDetails.email.split('@')[0];
+    }
+    return 'Employee';
+  };
 
   const formatDateTime = (dateString: string | null, timeString: string | null): string => {
     if (!dateString && !timeString) return 'N/A';
@@ -207,7 +243,7 @@ const ViewAttendanceScreen: React.FC<ViewAttendanceScreenProps> = ({ onBack }) =
         <TouchableOpacity onPress={onBack} style={globalStyles.attendanceBackButton}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={globalStyles.attendanceTitle}>Soundahr</Text>
+        <Text style={globalStyles.attendanceTitle}>{getEmployeeName()}</Text>
         <View style={{ width: 24 }} />
       </View>
 
