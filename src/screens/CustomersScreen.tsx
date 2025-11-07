@@ -9,6 +9,8 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Image,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
@@ -76,6 +78,34 @@ const CustomersScreen: React.FC<CustomersScreenProps> = ({ onBack }) => {
     return displayText.includes(searchQuery.toLowerCase());
   });
 
+  const handlePhonePress = (phoneNumber: string): void => {
+    // Remove any non-numeric characters except +
+    const cleanedNumber = phoneNumber.replace(/[^\d+]/g, '');
+    if (cleanedNumber) {
+      const phoneUrl = `tel:${cleanedNumber}`;
+      Linking.openURL(phoneUrl).catch((err) => {
+        console.error('Error opening phone dialer:', err);
+        Alert.alert('Error', 'Unable to open phone dialer. Please check if your device supports phone calls.');
+      });
+    } else {
+      Alert.alert('Error', 'Invalid phone number');
+    }
+  };
+
+  const handleEmailPress = (email: string): void => {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      Alert.alert('Error', 'Invalid email address');
+      return;
+    }
+
+    const mailUrl = `mailto:${encodeURIComponent(trimmedEmail)}`;
+    Linking.openURL(mailUrl).catch((err) => {
+      console.error('Error opening email client:', err);
+      Alert.alert('Error', 'Unable to open email client. Please try again later.');
+    });
+  };
+
   return (
     <SafeAreaView style={globalStyles.customersContainer}>
       <StatusBar barStyle="light-content" backgroundColor="#3498db" />
@@ -123,7 +153,11 @@ const CustomersScreen: React.FC<CustomersScreenProps> = ({ onBack }) => {
                 >
                   <View style={globalStyles.customersItemLeft}>
                     <View style={globalStyles.customersIconContainer}>
-                      <Ionicons name="person-outline" size={20} color="#3498db" />
+                      <Image 
+                        source={require('../assets/user (1).png')} 
+                        style={{ width: 20, height: 20 }}
+                        resizeMode="contain"
+                      />
                     </View>
                     <Text style={globalStyles.customersItemText}>
                       {formatCustomerDisplay(item)}
@@ -167,16 +201,28 @@ const CustomersScreen: React.FC<CustomersScreenProps> = ({ onBack }) => {
                         </View>
                       ) : null}
                       {item.email ? (
-                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
-                          <Ionicons name="mail" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
-                          <Text style={{ fontSize: 13, color: '#3498db', flex: 1, fontWeight: '500' }}>{item.email}</Text>
-                        </View>
+                        <TouchableOpacity
+                          style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}
+                          onPress={() => handleEmailPress(item.email || '')}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons name="mail" size={14} color="#3498db" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#3498db', flex: 1, fontWeight: '500', textDecorationLine: 'underline' }}>
+                            {item.email}
+                          </Text>
+                        </TouchableOpacity>
                       ) : null}
                       {(item.phone || item.mobile) ? (
-                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
-                          <Ionicons name="call" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
-                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1, fontWeight: '500' }}>{item.mobile || item.phone}</Text>
-                        </View>
+                        <TouchableOpacity 
+                          style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}
+                          onPress={() => handlePhonePress(item.mobile || item.phone || '')}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons name="call" size={14} color="#3498db" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#3498db', flex: 1, fontWeight: '500', textDecorationLine: 'underline' }}>
+                            {item.mobile || item.phone}
+                          </Text>
+                        </TouchableOpacity>
                       ) : null}
                       {item.site_id ? (
                         <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>

@@ -138,34 +138,34 @@ const TravellingScreen: React.FC<TravellingScreenProps> = ({ onBack, onApplyTrav
             style={{
               backgroundColor: '#fff',
               borderRadius: 12,
-              width: '90%',
-              maxWidth: 400,
-              padding: 20,
+              width: '85%',
+              maxWidth: 320,
+              padding: 15,
             }}
             activeOpacity={1}
             onPress={() => {}}
           >
             {/* Header */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <Text style={{ fontSize: 20, fontWeight: '600', color: '#2c3e50' }}>Select Travel Date</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={{ fontSize: 16, fontWeight: '600', color: '#2c3e50' }}>Select Travel Date</Text>
               <TouchableOpacity onPress={handleCancelDate}>
-                <Ionicons name="close" size={24} color="#666" />
+                <Ionicons name="close" size={20} color="#666" />
               </TouchableOpacity>
             </View>
 
             {/* Month Navigation */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <TouchableOpacity
                 onPress={() => {
                   const newDate = new Date(tempDate);
                   newDate.setMonth(tempDate.getMonth() - 1);
                   setTempDate(newDate);
                 }}
-                style={{ padding: 8 }}
+                style={{ padding: 6 }}
               >
-                <Ionicons name="chevron-back" size={24} color="#3498db" />
+                <Ionicons name="chevron-back" size={20} color="#3498db" />
               </TouchableOpacity>
-              <Text style={{ fontSize: 18, fontWeight: '600', color: '#2c3e50' }}>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: '#2c3e50' }}>
                 {tempDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </Text>
               <TouchableOpacity
@@ -174,17 +174,17 @@ const TravellingScreen: React.FC<TravellingScreenProps> = ({ onBack, onApplyTrav
                   newDate.setMonth(tempDate.getMonth() + 1);
                   setTempDate(newDate);
                 }}
-                style={{ padding: 8 }}
+                style={{ padding: 6 }}
               >
-                <Ionicons name="chevron-forward" size={24} color="#3498db" />
+                <Ionicons name="chevron-forward" size={20} color="#3498db" />
               </TouchableOpacity>
             </View>
 
             {/* Day Names */}
-            <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+            <View style={{ flexDirection: 'row', marginBottom: 6 }}>
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                <View key={day} style={{ flex: 1, alignItems: 'center', paddingVertical: 8 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#7f8c8d' }}>{day}</Text>
+                <View key={day} style={{ flex: 1, alignItems: 'center', paddingVertical: 4 }}>
+                  <Text style={{ fontSize: 10, fontWeight: '600', color: '#7f8c8d' }}>{day}</Text>
                 </View>
               ))}
             </View>
@@ -212,14 +212,14 @@ const TravellingScreen: React.FC<TravellingScreenProps> = ({ onBack, onApplyTrav
                       aspectRatio: 1,
                       justifyContent: 'center',
                       alignItems: 'center',
-                      borderRadius: 20,
+                      borderRadius: 15,
                       backgroundColor: isSelected ? '#3498db' : 'transparent',
-                      marginVertical: 2,
+                      marginVertical: 1,
                     }}
                   >
                     <Text
                       style={{
-                        fontSize: 14,
+                        fontSize: 11,
                         color: isSelected ? '#fff' : isToday ? '#3498db' : '#2c3e50',
                         fontWeight: isSelected || isToday ? '600' : '400',
                       }}
@@ -234,14 +234,14 @@ const TravellingScreen: React.FC<TravellingScreenProps> = ({ onBack, onApplyTrav
             {/* Selected Date Display */}
             <View style={{
               backgroundColor: '#f8f9fa',
-              padding: 12,
-              borderRadius: 8,
+              padding: 8,
+              borderRadius: 6,
               alignItems: 'center',
-              marginTop: 15,
-              marginBottom: 15,
+              marginTop: 10,
+              marginBottom: 10,
             }}>
               <Text style={{
-                fontSize: 14,
+                fontSize: 12,
                 color: '#2c3e50',
                 fontWeight: '500'
               }}>
@@ -255,30 +255,30 @@ const TravellingScreen: React.FC<TravellingScreenProps> = ({ onBack, onApplyTrav
             </View>
 
             {/* Buttons */}
-            <View style={{ flexDirection: 'row', marginTop: 10, gap: 10 }}>
+            <View style={{ flexDirection: 'row', marginTop: 8, gap: 8 }}>
               <TouchableOpacity
                 onPress={handleCancelDate}
                 style={{
                   flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 8,
+                  paddingVertical: 10,
+                  borderRadius: 6,
                   backgroundColor: '#e74c3c',
                   alignItems: 'center',
                 }}
               >
-                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Cancel</Text>
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleConfirmDate}
                 style={{
                   flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 8,
+                  paddingVertical: 10,
+                  borderRadius: 6,
                   backgroundColor: '#3498db',
                   alignItems: 'center',
                 }}
               >
-                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Select</Text>
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Select</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>

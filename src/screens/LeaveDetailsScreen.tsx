@@ -162,127 +162,214 @@ const LeaveDetailsScreen: React.FC<LeaveDetailsScreenProps> = ({ leave, onBack, 
           </View>
         ) : (
           <View style={{ padding: 12 }}>
-            {/* Leave Information */}
+            {/* Status Card - Prominent */}
             <View
               style={{
                 backgroundColor: '#fff',
                 borderRadius: 10,
-                padding: 18,
-                marginBottom: 15,
-                minHeight: 200,
+                padding: 14,
+                marginBottom: 12,
+                alignItems: 'center',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 4,
+                shadowOpacity: 0.08,
+                shadowRadius: 8,
                 elevation: 3,
               }}
             >
-              <Text
+              <Text style={{ fontSize: 12, color: '#7f8c8d', marginBottom: 6 }}>Status</Text>
+              <View
                 style={{
-                  fontSize: 20,
-                  fontWeight: 'bold',
-                  color: '#2c3e50',
-                  marginBottom: 15,
+                  backgroundColor: getStatusColor(leave.status || 'pending') + '20',
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  borderRadius: 16,
+                  borderWidth: 2,
+                  borderColor: getStatusColor(leave.status || 'pending'),
                 }}
               >
-                Leave Information
-              </Text>
-
-              {/* Leave Type */}
-              <View style={{ marginBottom: 12 }}>
-                <Text style={{ fontSize: 14, color: '#7f8c8d', marginBottom: 4 }}>Leave Type</Text>
-                <Text style={{ fontSize: 16, color: '#2c3e50', fontWeight: '600' }}>
-                  {leave.leave_type_display ||
-                    leaveTypeDisplayMap[leave.leave_type] ||
-                    leave.leave_type}
-                  {leave.half_day ? ' (Half Day)' : ''}
-                </Text>
-              </View>
-
-              {/* Date Range */}
-              <View style={{ marginBottom: 12 }}>
-                <Text style={{ fontSize: 14, color: '#7f8c8d', marginBottom: 4 }}>Date Range</Text>
-                <Text style={{ fontSize: 16, color: '#2c3e50', fontWeight: '600' }}>
-                  {formatDate(leave.from_date)} {leave.from_date !== leave.to_date ? `- ${formatDate(leave.to_date)}` : ''}
-                </Text>
-              </View>
-
-              {/* Status */}
-              <View style={{ marginBottom: 12 }}>
-                <Text style={{ fontSize: 14, color: '#7f8c8d', marginBottom: 4 }}>Status</Text>
-                <View
+                <Text
                   style={{
-                    backgroundColor: getStatusColor(leave.status || 'pending') + '20',
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
-                    borderRadius: 8,
-                    alignSelf: 'flex-start',
+                    color: getStatusColor(leave.status || 'pending'),
+                    fontSize: 14,
+                    fontWeight: '700',
+                    textTransform: 'capitalize',
+                    letterSpacing: 0.5,
                   }}
                 >
-                  <Text
-                    style={{
-                      color: getStatusColor(leave.status || 'pending'),
-                      fontSize: 14,
-                      fontWeight: '600',
-                      textTransform: 'capitalize',
-                    }}
-                  >
-                    {leave.status_display || leave.status || 'Pending'}
+                  {leave.status_display || leave.status || 'Pending'}
+                </Text>
+              </View>
+            </View>
+
+            {/* Leave Information Card */}
+            <View
+              style={{
+                backgroundColor: '#fff',
+                borderRadius: 10,
+                padding: 14,
+                marginBottom: 12,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: 8,
+                elevation: 3,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                <View
+                  style={{
+                    width: 3,
+                    height: 18,
+                    backgroundColor: '#3498db',
+                    borderRadius: 2,
+                    marginRight: 10,
+                  }}
+                />
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 'bold',
+                    color: '#2c3e50',
+                  }}
+                >
+                  Leave Information
+                </Text>
+              </View>
+
+              {/* Leave Type */}
+              <View style={{ flexDirection: 'row', marginBottom: 12, alignItems: 'flex-start' }}>
+                <Ionicons name="calendar-outline" size={18} color="#3498db" style={{ marginRight: 10, marginTop: 2 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 3, textTransform: 'uppercase', letterSpacing: 0.5 }}>Leave Type</Text>
+                  <Text style={{ fontSize: 14, color: '#2c3e50', fontWeight: '600' }}>
+                    {leave.leave_type_display ||
+                      leaveTypeDisplayMap[leave.leave_type] ||
+                      leave.leave_type}
+                    {leave.half_day ? ' (Half Day)' : ''}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={{ height: 1, backgroundColor: '#f0f0f0', marginVertical: 3 }} />
+
+              {/* Date Range */}
+              <View style={{ flexDirection: 'row', marginTop: 12, marginBottom: 12, alignItems: 'flex-start' }}>
+                <Ionicons name="time-outline" size={18} color="#3498db" style={{ marginRight: 10, marginTop: 2 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 3, textTransform: 'uppercase', letterSpacing: 0.5 }}>Date Range</Text>
+                  <Text style={{ fontSize: 14, color: '#2c3e50', fontWeight: '600' }}>
+                    {formatDate(leave.from_date)} {leave.from_date !== leave.to_date ? `- ${formatDate(leave.to_date)}` : ''}
                   </Text>
                 </View>
               </View>
 
               {/* Email */}
               {leave.email && (
-                <View style={{ marginBottom: 12 }}>
-                  <Text style={{ fontSize: 14, color: '#7f8c8d', marginBottom: 4 }}>Email</Text>
-                  <Text style={{ fontSize: 16, color: '#2c3e50', fontWeight: '500' }}>
-                    {leave.email}
-                  </Text>
-                </View>
+                <>
+                  <View style={{ height: 1, backgroundColor: '#f0f0f0', marginVertical: 3 }} />
+                  <View style={{ flexDirection: 'row', marginTop: 12, marginBottom: 12, alignItems: 'flex-start' }}>
+                    <Ionicons name="mail-outline" size={18} color="#3498db" style={{ marginRight: 10, marginTop: 2 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 3, textTransform: 'uppercase', letterSpacing: 0.5 }}>Email</Text>
+                      <Text style={{ fontSize: 14, color: '#2c3e50', fontWeight: '500' }}>
+                        {leave.email}
+                      </Text>
+                    </View>
+                  </View>
+                </>
               )}
 
               {/* Reason */}
               {leave.reason && (
-                <View style={{ marginBottom: 12 }}>
-                  <Text style={{ fontSize: 14, color: '#7f8c8d', marginBottom: 4 }}>Reason</Text>
-                  <Text style={{ fontSize: 16, color: '#2c3e50', fontWeight: '500' }}>
-                    {leave.reason}
-                  </Text>
-                </View>
-              )}
-
-              {/* Created At */}
-              {leave.created_at && (
-                <View style={{ marginBottom: 12 }}>
-                  <Text style={{ fontSize: 14, color: '#7f8c8d', marginBottom: 4 }}>
-                    Created At
-                  </Text>
-                  <Text style={{ fontSize: 16, color: '#2c3e50', fontWeight: '500' }}>
-                    {formatDateTime(leave.created_at)}
-                  </Text>
-                </View>
-              )}
-
-              {/* Updated At */}
-              {leave.updated_at && (
-                <View>
-                  <Text style={{ fontSize: 14, color: '#7f8c8d', marginBottom: 4 }}>
-                    Updated At
-                  </Text>
-                  <Text style={{ fontSize: 16, color: '#2c3e50', fontWeight: '500' }}>
-                    {formatDateTime(leave.updated_at)}
-                  </Text>
-                </View>
+                <>
+                  <View style={{ height: 1, backgroundColor: '#f0f0f0', marginVertical: 3 }} />
+                  <View style={{ flexDirection: 'row', marginTop: 12, marginBottom: 12, alignItems: 'flex-start' }}>
+                    <Ionicons name="document-text-outline" size={18} color="#3498db" style={{ marginRight: 10, marginTop: 2 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 3, textTransform: 'uppercase', letterSpacing: 0.5 }}>Reason</Text>
+                      <Text style={{ fontSize: 14, color: '#2c3e50', fontWeight: '500', lineHeight: 20 }}>
+                        {leave.reason}
+                      </Text>
+                    </View>
+                  </View>
+                </>
               )}
             </View>
+
+            {/* Timestamp Information */}
+            {(leave.created_at || leave.updated_at) && (
+              <View
+                style={{
+                  backgroundColor: '#fff',
+                  borderRadius: 10,
+                  padding: 14,
+                  marginBottom: 12,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 8,
+                  elevation: 3,
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                  <View
+                    style={{
+                      width: 3,
+                      height: 18,
+                      backgroundColor: '#95a5a6',
+                      borderRadius: 2,
+                      marginRight: 10,
+                    }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: '600',
+                      color: '#7f8c8d',
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    Timeline
+                  </Text>
+                </View>
+
+                {/* Created At */}
+                {leave.created_at && (
+                  <View style={{ flexDirection: 'row', marginBottom: 10, alignItems: 'flex-start' }}>
+                    <Ionicons name="add-circle-outline" size={16} color="#95a5a6" style={{ marginRight: 10, marginTop: 2 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 3 }}>Created At</Text>
+                      <Text style={{ fontSize: 13, color: '#2c3e50', fontWeight: '500' }}>
+                        {formatDateTime(leave.created_at)}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+
+                {/* Updated At */}
+                {leave.updated_at && (
+                  <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                    <Ionicons name="refresh-outline" size={16} color="#95a5a6" style={{ marginRight: 10, marginTop: 2 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 3 }}>Updated At</Text>
+                      <Text style={{ fontSize: 13, color: '#2c3e50', fontWeight: '500' }}>
+                        {formatDateTime(leave.updated_at)}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+            )}
 
             {/* Action Buttons */}
             {canEditOrDelete && (
               <View
                 style={{
                   flexDirection: 'row',
-                  marginBottom: 15,
+                  marginBottom: 16,
+                  gap: 10,
                 }}
               >
                 <TouchableOpacity
@@ -290,43 +377,41 @@ const LeaveDetailsScreen: React.FC<LeaveDetailsScreenProps> = ({ leave, onBack, 
                   style={{
                     flex: 1,
                     backgroundColor: '#3498db',
-                    paddingVertical: 14,
+                    paddingVertical: 12,
                     borderRadius: 8,
                     flexDirection: 'row',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    shadowColor: '#000',
+                    shadowColor: '#3498db',
                     shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
+                    shadowOpacity: 0.2,
                     shadowRadius: 4,
                     elevation: 3,
                   }}
                 >
-                  <Ionicons name="create-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Edit</Text>
+                  <Ionicons name="create-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Edit</Text>
                 </TouchableOpacity>
-
-                <View style={{ width: 12 }} />
 
                 <TouchableOpacity
                   onPress={handleDelete}
                   style={{
                     flex: 1,
                     backgroundColor: '#e74c3c',
-                    paddingVertical: 14,
+                    paddingVertical: 12,
                     borderRadius: 8,
                     flexDirection: 'row',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    shadowColor: '#000',
+                    shadowColor: '#e74c3c',
                     shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
+                    shadowOpacity: 0.2,
                     shadowRadius: 4,
                     elevation: 3,
                   }}
                 >
-                  <Ionicons name="trash-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Delete</Text>
+                  <Ionicons name="trash-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Delete</Text>
                 </TouchableOpacity>
               </View>
             )}

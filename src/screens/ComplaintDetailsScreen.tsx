@@ -8,6 +8,7 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
@@ -53,6 +54,20 @@ const ComplaintDetailsScreen: React.FC<ComplaintDetailsScreenProps> = ({ complai
       });
     } catch {
       return dateTimeStr;
+    }
+  };
+
+  const handlePhonePress = (phoneNumber: string): void => {
+    // Remove any non-numeric characters except +
+    const cleanedNumber = phoneNumber.replace(/[^\d+]/g, '');
+    if (cleanedNumber) {
+      const phoneUrl = `tel:${cleanedNumber}`;
+      Linking.openURL(phoneUrl).catch((err) => {
+        console.error('Error opening phone dialer:', err);
+        Alert.alert('Error', 'Unable to open phone dialer. Please check if your device supports phone calls.');
+      });
+    } else {
+      Alert.alert('Error', 'Invalid phone number');
     }
   };
 
@@ -207,9 +222,11 @@ const ComplaintDetailsScreen: React.FC<ComplaintDetailsScreenProps> = ({ complai
 
               <View style={{ marginBottom: 10 }}>
                 <Text style={{ fontSize: 14, color: '#666', marginBottom: 2 }}>Mobile Number</Text>
-                <Text style={{ fontSize: 16, color: '#2c3e50', fontWeight: '500' }}>
-                  {complaint.mobileNumber}
-                </Text>
+                <TouchableOpacity onPress={() => handlePhonePress(complaint.mobileNumber)} activeOpacity={0.7}>
+                  <Text style={{ fontSize: 16, color: '#3498db', fontWeight: '500', textDecorationLine: 'underline' }}>
+                    {complaint.mobileNumber}
+                  </Text>
+                </TouchableOpacity>
               </View>
 
               {complaint.block_wing && (

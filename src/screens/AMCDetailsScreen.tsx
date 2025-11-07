@@ -7,6 +7,8 @@ import {
   ScrollView,
   StatusBar,
   ActivityIndicator,
+  Linking,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
@@ -38,6 +40,34 @@ const AMCDetailsScreen: React.FC<AMCDetailsScreenProps> = ({ amc, onBack }) => {
     } catch {
       return dateStr;
     }
+  };
+
+  const handlePhonePress = (phoneNumber: string): void => {
+    // Remove any non-numeric characters except +
+    const cleanedNumber = phoneNumber.replace(/[^\d+]/g, '');
+    if (cleanedNumber) {
+      const phoneUrl = `tel:${cleanedNumber}`;
+      Linking.openURL(phoneUrl).catch((err) => {
+        console.error('Error opening phone dialer:', err);
+        Alert.alert('Error', 'Unable to open phone dialer. Please check if your device supports phone calls.');
+      });
+    } else {
+      Alert.alert('Error', 'Invalid phone number');
+    }
+  };
+
+  const handleEmailPress = (email: string): void => {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      Alert.alert('Error', 'Invalid email address');
+      return;
+    }
+
+    const mailUrl = `mailto:${encodeURIComponent(trimmedEmail)}`;
+    Linking.openURL(mailUrl).catch((err) => {
+      console.error('Error opening email client:', err);
+      Alert.alert('Error', 'Unable to open email client. Please try again later.');
+    });
   };
 
   return (
@@ -116,7 +146,11 @@ const AMCDetailsScreen: React.FC<AMCDetailsScreenProps> = ({ amc, onBack }) => {
             {amc.customer_email && (
               <View style={{ marginBottom: 12 }}>
                 <Text style={{ fontSize: 14, color: '#7f8c8d', marginBottom: 4 }}>Customer Email</Text>
-                <Text style={{ fontSize: 16, color: '#2c3e50', fontWeight: '600' }}>{amc.customer_email}</Text>
+                <TouchableOpacity onPress={() => handleEmailPress(amc.customer_email || '')} activeOpacity={0.7}>
+                  <Text style={{ fontSize: 16, color: '#3498db', fontWeight: '600', textDecorationLine: 'underline' }}>
+                    {amc.customer_email}
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
 
@@ -124,7 +158,11 @@ const AMCDetailsScreen: React.FC<AMCDetailsScreenProps> = ({ amc, onBack }) => {
             {amc.customer_phone && (
               <View style={{ marginBottom: 12 }}>
                 <Text style={{ fontSize: 14, color: '#7f8c8d', marginBottom: 4 }}>Customer Phone</Text>
-                <Text style={{ fontSize: 16, color: '#2c3e50', fontWeight: '600' }}>{amc.customer_phone}</Text>
+                <TouchableOpacity onPress={() => handlePhonePress(amc.customer_phone || '')} activeOpacity={0.7}>
+                  <Text style={{ fontSize: 16, color: '#3498db', fontWeight: '600', textDecorationLine: 'underline' }}>
+                    {amc.customer_phone}
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
 

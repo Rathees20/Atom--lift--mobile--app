@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
-import { createLeave, updateLeave, CreateLeaveData, getLeaveTypes, LeaveType, LeaveItem } from '../utils/api';
+import { createLeave, updateLeave, CreateLeaveData, getLeaveTypes, LeaveType, LeaveItem, getLeaveCounts, LeaveCountsResponse } from '../utils/api';
 import { getEmailError } from '../utils/validation';
 import { useAlert } from '../contexts/AlertContext';
 
@@ -24,6 +24,13 @@ interface LeaveScreenProps {
   onApplyLeave: () => void;
   editingLeave?: LeaveItem | null;
 }
+
+type LeaveMutationResult = {
+  success: boolean;
+  message?: string;
+  error?: string;
+  leave?: LeaveItem;
+};
 
 const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editingLeave }) => {
   const { showSuccessAlert, showErrorAlert } = useAlert();
@@ -45,9 +52,11 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
   const [showToDatePicker, setShowToDatePicker] = useState<boolean>(false);
   const [tempFromDate, setTempFromDate] = useState<Date>(new Date());
   const [tempToDate, setTempToDate] = useState<Date>(new Date());
+  const [leaveCounts, setLeaveCounts] = useState<LeaveCountsResponse | null>(null);
 
   useEffect(() => {
     fetchLeaveTypes();
+    fetchLeaveCounts();
   }, []);
 
   // Populate form when editing
@@ -96,11 +105,45 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
     }
   };
 
+  const fetchLeaveCounts = async (): Promise<void> => {
+    try {
+      const counts = await getLeaveCounts();
+      setLeaveCounts(counts);
+    } catch (error: any) {
+      console.error('Error fetching leave counts:', error);
+      // Don't show error, just silently fail
+    }
+  };
+
+  // Mapping to show readable leave type
+  const leaveTypeDisplayMap: Record<string, string> = {
+    casual: 'Casual Leave',
+    sick: 'Sick Leave',
+    earned: 'Earned Leave',
+    unpaid: 'Unpaid Leave',
+    other: 'Other',
+  };
+
   const handleInputChange = (field: string, value: string | boolean): void => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [field]: value
+      };
+      
+      // If half day is checked and fromDate is set, automatically set toDate to fromDate
+      if (field === 'halfDay' && value === true && prev.fromDate) {
+        updated.toDate = prev.fromDate;
+      } else if (field === 'halfDay' && value === true && !prev.fromDate) {
+        // If half day is checked but no fromDate yet, clear toDate
+        updated.toDate = '';
+      } else if (field === 'fromDate' && prev.halfDay) {
+        // If half day is checked and fromDate changes, update toDate to match
+        updated.toDate = value as string;
+      }
+      
+      return updated;
+    });
   };
 
   // ✅ FIXED: use leaveType.key instead of leaveType.name
@@ -126,6 +169,16 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
     setShowDropdown(false);
   };
 
+  const compareDates = (date1Str: string, date2Str: string): number => {
+    // Parse dates in YYYY-MM-DD format
+    const date1 = new Date(date1Str);
+    const date2 = new Date(date2Str);
+    // Reset time to compare only dates
+    date1.setHours(0, 0, 0, 0);
+    date2.setHours(0, 0, 0, 0);
+    return date1.getTime() - date2.getTime();
+  };
+
   const validateForm = (): boolean => {
     if (!formData.leaveType.trim()) {
       showErrorAlert('Please select a leave type');
@@ -135,11 +188,24 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
       showErrorAlert('Please select from date');
       return false;
     }
-    if (!formData.toDate.trim()) {
+    // Only require toDate if not half day
+    if (!formData.halfDay && !formData.toDate.trim()) {
       showErrorAlert('Please select to date');
       return false;
     }
-    // Email validation
+    // Validate that toDate is not before fromDate
+    if (!formData.halfDay && formData.fromDate && formData.toDate) {
+      const dateComparison = compareDates(formData.toDate, formData.fromDate);
+      if (dateComparison < 0) {
+        showErrorAlert('To Date cannot be before From Date. Please select a valid date range.');
+        return false;
+      }
+    }
+    // Email validation - required
+    if (!formData.email.trim()) {
+      showErrorAlert('Please enter your email address');
+      return false;
+    }
     const emailError = getEmailError(formData.email);
     if (emailError) {
       showErrorAlert(emailError);
@@ -206,18 +272,50 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
       if (!isNaN(date.getTime())) {
         setTempToDate(date);
       }
+    } else if (formData.fromDate) {
+      // If no toDate but fromDate exists, set tempToDate to fromDate
+      const date = new Date(formData.fromDate);
+      if (!isNaN(date.getTime())) {
+        setTempToDate(date);
+      }
     }
     setShowToDatePicker(true);
   };
 
   const handleConfirmFromDate = (): void => {
     const formattedDate = formatDateForInput(tempFromDate);
+    
+    // If toDate exists and is before the new fromDate, show error and don't update
+    if (!formData.halfDay && formData.toDate) {
+      const dateComparison = compareDates(formData.toDate, formattedDate);
+      if (dateComparison < 0) {
+        showErrorAlert('From Date cannot be after To Date. Please select To Date first or update it.');
+        setShowFromDatePicker(false);
+        return;
+      }
+    }
+    
     handleInputChange('fromDate', formattedDate);
+    // If half day is selected, also set toDate to the same date
+    if (formData.halfDay) {
+      handleInputChange('toDate', formattedDate);
+    }
     setShowFromDatePicker(false);
   };
 
   const handleConfirmToDate = (): void => {
     const formattedDate = formatDateForInput(tempToDate);
+    
+    // Validate that toDate is not before fromDate
+    if (formData.fromDate) {
+      const dateComparison = compareDates(formattedDate, formData.fromDate);
+      if (dateComparison < 0) {
+        showErrorAlert('To Date cannot be before From Date. Please select a date on or after the From Date.');
+        setShowToDatePicker(false);
+        return;
+      }
+    }
+    
     handleInputChange('toDate', formattedDate);
     setShowToDatePicker(false);
   };
@@ -227,7 +325,8 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
     date: Date,
     onDateChange: (newDate: Date) => void,
     onConfirm: () => void,
-    onCancel: () => void
+    onCancel: () => void,
+    isToDatePicker: boolean = false
   ) => {
     const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
     const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
@@ -260,34 +359,34 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
             style={{
               backgroundColor: '#fff',
               borderRadius: 12,
-              width: '90%',
-              maxWidth: 400,
-              padding: 20,
+              width: '85%',
+              maxWidth: 320,
+              padding: 15,
             }}
             activeOpacity={1}
             onPress={() => {}}
           >
             {/* Header */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <Text style={{ fontSize: 20, fontWeight: '600', color: '#2c3e50' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={{ fontSize: 16, fontWeight: '600', color: '#2c3e50' }}>
                 {monthNames[date.getMonth()]} {date.getFullYear()}
               </Text>
               <TouchableOpacity onPress={onCancel}>
-                <Ionicons name="close" size={24} color="#666" />
+                <Ionicons name="close" size={20} color="#666" />
               </TouchableOpacity>
             </View>
 
             {/* Month Navigation */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
               <TouchableOpacity
                 onPress={() => {
                   const newDate = new Date(date);
                   newDate.setMonth(date.getMonth() - 1);
                   onDateChange(newDate);
                 }}
-                style={{ padding: 8 }}
+                style={{ padding: 6 }}
               >
-                <Ionicons name="chevron-back" size={24} color="#3498db" />
+                <Ionicons name="chevron-back" size={20} color="#3498db" />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
@@ -295,17 +394,17 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
                   newDate.setMonth(date.getMonth() + 1);
                   onDateChange(newDate);
                 }}
-                style={{ padding: 8 }}
+                style={{ padding: 6 }}
               >
-                <Ionicons name="chevron-forward" size={24} color="#3498db" />
+                <Ionicons name="chevron-forward" size={20} color="#3498db" />
               </TouchableOpacity>
             </View>
 
             {/* Day Names */}
-            <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+            <View style={{ flexDirection: 'row', marginBottom: 6 }}>
               {dayNames.map((day) => (
-                <View key={day} style={{ flex: 1, alignItems: 'center', paddingVertical: 8 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#7f8c8d' }}>{day}</Text>
+                <View key={day} style={{ flex: 1, alignItems: 'center', paddingVertical: 4 }}>
+                  <Text style={{ fontSize: 10, fontWeight: '600', color: '#7f8c8d' }}>{day}</Text>
                 </View>
               ))}
             </View>
@@ -320,27 +419,48 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
                 const isToday = day === new Date().getDate() && 
                                date.getMonth() === new Date().getMonth() && 
                                date.getFullYear() === new Date().getFullYear();
+                
+                // Check if this date should be disabled (for To Date picker, disable dates before From Date)
+                let isDisabled = false;
+                if (isToDatePicker && formData.fromDate) {
+                  const currentDayDate = new Date(date.getFullYear(), date.getMonth(), day);
+                  const fromDateObj = new Date(formData.fromDate);
+                  currentDayDate.setHours(0, 0, 0, 0);
+                  fromDateObj.setHours(0, 0, 0, 0);
+                  isDisabled = currentDayDate < fromDateObj;
+                }
+                
                 return (
                   <TouchableOpacity
                     key={day}
                     onPress={() => {
+                      if (isDisabled) return;
                       const newDate = new Date(date);
                       newDate.setDate(day);
                       onDateChange(newDate);
                     }}
+                    disabled={isDisabled}
                     style={{
                       width: '14.28%',
                       aspectRatio: 1,
                       justifyContent: 'center',
                       alignItems: 'center',
-                      borderRadius: 20,
+                      borderRadius: 15,
                       backgroundColor: isSelected ? '#3498db' : 'transparent',
+                      marginVertical: 1,
+                      opacity: isDisabled ? 0.3 : 1,
                     }}
                   >
                     <Text
                       style={{
-                        fontSize: 14,
-                        color: isSelected ? '#fff' : isToday ? '#3498db' : '#2c3e50',
+                        fontSize: 11,
+                        color: isDisabled 
+                          ? '#bdc3c7' 
+                          : isSelected 
+                            ? '#fff' 
+                            : isToday 
+                              ? '#3498db' 
+                              : '#2c3e50',
                         fontWeight: isSelected || isToday ? '600' : '400',
                       }}
                     >
@@ -352,30 +472,30 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
             </View>
 
             {/* Buttons */}
-            <View style={{ flexDirection: 'row', marginTop: 20, gap: 10 }}>
+            <View style={{ flexDirection: 'row', marginTop: 10, gap: 8 }}>
               <TouchableOpacity
                 onPress={onCancel}
                 style={{
                   flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 8,
+                  paddingVertical: 10,
+                  borderRadius: 6,
                   backgroundColor: '#e74c3c',
                   alignItems: 'center',
                 }}
               >
-                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Cancel</Text>
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={onConfirm}
                 style={{
                   flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 8,
+                  paddingVertical: 10,
+                  borderRadius: 6,
                   backgroundColor: '#3498db',
                   alignItems: 'center',
                 }}
               >
-                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Select</Text>
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Select</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -395,18 +515,21 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
           half_day: formData.halfDay,
           leave_type: formData.leaveType.trim(),  // ✅ now this sends backend key (e.g. 'casual')
           from_date: formatDate(formData.fromDate.trim()),
-          to_date: formatDate(formData.toDate.trim()),
+          to_date: formData.halfDay ? formatDate(formData.fromDate.trim()) : formatDate(formData.toDate.trim()),
           email: formData.email.trim(),
           reason: formData.reason.trim(),
         };
 
-                let result;
+        let result: LeaveMutationResult | null = null;
         if (editingLeave) {
           // Update existing leave
           try {
-            const updatedLeave = await updateLeave(editingLeave.id, leaveData);
-            result = { success: true, message: 'Leave request updated successfully', leave: updatedLeave };
-            console.log('Leave updated:', updatedLeave);
+            const updateResponse = await updateLeave(editingLeave.id, leaveData);
+            result = {
+              ...updateResponse,
+              message: updateResponse.message || 'Leave request updated successfully',
+            };
+            console.log('Leave updated:', updateResponse);
           } catch (error: any) {
             showErrorAlert(error.message || 'Failed to update leave request');
             return;
@@ -448,24 +571,74 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
         
         <Text style={globalStyles.leaveTitle}>{editingLeave ? 'Edit Leave' : 'Apply Leave'}</Text>
         
-        <TouchableOpacity 
-          onPress={handleApplyLeave} 
-          style={globalStyles.complaintSaveButton}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <>
-              <Ionicons name="checkmark" size={20} color="#fff" />
-              <Text style={globalStyles.complaintSaveText}>Apply</Text>
-            </>
-          )}
-        </TouchableOpacity>
+        <View style={{ width: 40 }} />
       </View>
 
       {/* Form Content */}
       <ScrollView style={globalStyles.leaveFormContent} showsVerticalScrollIndicator={false}>
+        {/* Leave Balance Summary */}
+        {leaveCounts && leaveCounts.counts.length > 0 && (
+          <View
+            style={{
+              backgroundColor: '#fff',
+              marginBottom: 20,
+              padding: 14,
+              borderRadius: 10,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.08,
+              shadowRadius: 8,
+              elevation: 3,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+              <View
+                style={{
+                  width: 3,
+                  height: 18,
+                  backgroundColor: '#3498db',
+                  borderRadius: 2,
+                  marginRight: 10,
+                }}
+              />
+              <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2c3e50' }}>
+                Leave Balance
+              </Text>
+            </View>
+            {leaveCounts.counts.map((count, index) => (
+              <View
+                key={index}
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingVertical: 8,
+                  borderBottomWidth: index < leaveCounts.counts.length - 1 ? 1 : 0,
+                  borderBottomColor: '#f0f0f0',
+                }}
+              >
+                <Text style={{ fontSize: 14, color: '#2c3e50', flex: 1, fontWeight: '500' }}>
+                  {count.leave_type_display || leaveTypeDisplayMap[count.leave_type] || count.leave_type}
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <View style={{ alignItems: 'center', minWidth: 50 }}>
+                    <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 2 }}>Remaining</Text>
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: '#27ae60' }}>
+                      {count.total_remaining}
+                    </Text>
+                  </View>
+                  <View style={{ alignItems: 'center', minWidth: 45 }}>
+                    <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 2 }}>Used</Text>
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: '#e74c3c' }}>
+                      {count.total_used}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* Half Day Checkbox */}
         <View style={globalStyles.leaveCheckboxContainer}>
           <TouchableOpacity
@@ -483,7 +656,9 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
 
         {/* Leave Type Field */}
         <View style={globalStyles.leaveFieldContainer}>
-          <Text style={globalStyles.leaveFieldLabel}>Leave Type</Text>
+          <Text style={globalStyles.leaveFieldLabel}>
+            Leave Type <Text style={{ color: '#e74c3c' }}>*</Text>
+          </Text>
           <TouchableOpacity
             style={globalStyles.leaveDropdownContainer}
             onPress={openDropdown}
@@ -505,7 +680,9 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
 
         {/* From Date Field */}
         <View style={globalStyles.leaveFieldContainer}>
-          <Text style={globalStyles.leaveFieldLabel}>From Date</Text>
+          <Text style={globalStyles.leaveFieldLabel}>
+            From Date <Text style={{ color: '#e74c3c' }}>*</Text>
+          </Text>
           <TouchableOpacity
             style={[globalStyles.leaveTextInput, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
             onPress={handleOpenFromDatePicker}
@@ -519,21 +696,42 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
 
         {/* To Date Field */}
         <View style={globalStyles.leaveFieldContainer}>
-          <Text style={globalStyles.leaveFieldLabel}>To Date</Text>
+          <Text style={globalStyles.leaveFieldLabel}>
+            To Date {!formData.halfDay && <Text style={{ color: '#e74c3c' }}>*</Text>}
+          </Text>
           <TouchableOpacity
-            style={[globalStyles.leaveTextInput, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
-            onPress={handleOpenToDatePicker}
+            style={[
+              globalStyles.leaveTextInput, 
+              { 
+                flexDirection: 'row', 
+                alignItems: 'center', 
+                justifyContent: 'space-between',
+                opacity: formData.halfDay ? 0.5 : 1
+              }
+            ]}
+            onPress={formData.halfDay ? undefined : handleOpenToDatePicker}
+            disabled={formData.halfDay}
           >
             <Text style={{ color: formData.toDate ? '#2c3e50' : '#999', fontSize: 16 }}>
-              {formData.toDate ? formatDateForDisplay(formData.toDate) : 'Select To Date'}
+              {formData.halfDay 
+                ? (formData.fromDate ? formatDateForDisplay(formData.fromDate) : 'Same as From Date')
+                : (formData.toDate ? formatDateForDisplay(formData.toDate) : 'Select To Date')
+              }
             </Text>
-            <Ionicons name="calendar-outline" size={24} color="#3498db" />
+            <Ionicons name="calendar-outline" size={24} color={formData.halfDay ? "#bdc3c7" : "#3498db"} />
           </TouchableOpacity>
+          {formData.halfDay && (
+            <Text style={{ fontSize: 12, color: '#7f8c8d', marginTop: 4 }}>
+              To Date is automatically set to From Date for half day leave
+            </Text>
+          )}
         </View>
 
         {/* Email Field */}
         <View style={globalStyles.leaveFieldContainer}>
-          <Text style={globalStyles.leaveFieldLabel}>Email</Text>
+          <Text style={globalStyles.leaveFieldLabel}>
+            Email <Text style={{ color: '#e74c3c' }}>*</Text>
+          </Text>
           <TextInput
             style={globalStyles.leaveTextInput}
             placeholder="Enter Email"
@@ -640,7 +838,8 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
         tempFromDate,
         setTempFromDate,
         handleConfirmFromDate,
-        () => setShowFromDatePicker(false)
+        () => setShowFromDatePicker(false),
+        false
       )}
 
       {/* To Date Picker Modal */}
@@ -649,7 +848,8 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
         tempToDate,
         setTempToDate,
         handleConfirmToDate,
-        () => setShowToDatePicker(false)
+        () => setShowToDatePicker(false),
+        true
       )}
     </SafeAreaView>
   );

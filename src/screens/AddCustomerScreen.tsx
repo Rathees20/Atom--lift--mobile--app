@@ -72,14 +72,22 @@ const AddCustomerScreen: React.FC<AddCustomerScreenProps> = ({ onBack, onSave })
       return;
     }
 
-    // Mobile number validation
+    // Mobile number validation - required
+    if (!formData.mobileNumber.trim()) {
+      showErrorAlert('Please enter mobile number');
+      return;
+    }
     const mobileError = getMobileNumberError(formData.mobileNumber);
     if (mobileError) {
       showErrorAlert(mobileError);
       return;
     }
 
-    // Email validation
+    // Email validation - required
+    if (!formData.email.trim()) {
+      showErrorAlert('Please enter email address');
+      return;
+    }
     const emailError = getEmailError(formData.email);
     if (emailError) {
       showErrorAlert(emailError);
@@ -99,9 +107,11 @@ const AddCustomerScreen: React.FC<AddCustomerScreenProps> = ({ onBack, onSave })
         city: formData.city,
       };
 
-      // Add job_no only if provided
+      // Add job_no only if provided and not empty, otherwise send null to avoid unique constraint violation
       if (formData.jobNo && formData.jobNo.trim()) {
-        customerData.job_no = formData.jobNo;
+        customerData.job_no = formData.jobNo.trim();
+      } else {
+        customerData.job_no = null; // Send null instead of empty string to allow multiple null values
       }
 
       const result = await createCustomer(customerData);

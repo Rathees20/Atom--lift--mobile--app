@@ -9,7 +9,8 @@ export type RootStackParamList = {
 export interface MenuItem {
   id: number;
   title: string;
-  icon: keyof typeof import('@expo/vector-icons').Ionicons.glyphMap;
+  icon?: keyof typeof import('@expo/vector-icons').Ionicons.glyphMap;
+  imageSource?: any; // Image source (require() or ImageSourcePropType)
   color: string;
 }
 

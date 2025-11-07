@@ -13,6 +13,7 @@ import {
   Modal,
   PanResponder,
   Dimensions,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
@@ -468,6 +469,20 @@ const TicketsScreen: React.FC<TicketsScreenProps> = ({ onBack, onShowDetails }) 
     }
   };
 
+  const handlePhonePress = (phoneNumber: string): void => {
+    // Remove any non-numeric characters except +
+    const cleanedNumber = phoneNumber.replace(/[^\d+]/g, '');
+    if (cleanedNumber) {
+      const phoneUrl = `tel:${cleanedNumber}`;
+      Linking.openURL(phoneUrl).catch((err) => {
+        console.error('Error opening phone dialer:', err);
+        Alert.alert('Error', 'Unable to open phone dialer. Please check if your device supports phone calls.');
+      });
+    } else {
+      Alert.alert('Error', 'Invalid phone number');
+    }
+  };
+
   return (
     <SafeAreaView style={globalStyles.ticketsContainer}>
       <StatusBar barStyle="light-content" backgroundColor="#3498db" />
@@ -576,7 +591,11 @@ const TicketsScreen: React.FC<TicketsScreenProps> = ({ onBack, onShowDetails }) 
                 >
                   <View style={globalStyles.ticketsMainRowLeft}>
                     <View style={globalStyles.ticketsNotificationIcon}>
-                      <Ionicons name="notifications-outline" size={20} color="#3498db" />
+                      <Image 
+                        source={require('../assets/notification.png')} 
+                        style={{ width: 20, height: 20 }}
+                        resizeMode="contain"
+                      />
                     </View>
                     <View style={globalStyles.ticketsMainRowContent}>
                       <Text style={globalStyles.ticketsTitleText}>{item.title}</Text>
@@ -655,10 +674,16 @@ const TicketsScreen: React.FC<TicketsScreenProps> = ({ onBack, onShowDetails }) 
                         </View>
                       ) : null}
                       {item.mobileNumber ? (
-                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
-                          <Ionicons name="call" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
-                          <Text style={{ fontSize: 13, color: '#3498db', flex: 1, fontWeight: '500' }}>{item.mobileNumber}</Text>
-                        </View>
+                        <TouchableOpacity 
+                          style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}
+                          onPress={() => handlePhonePress(item.mobileNumber)}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons name="call" size={14} color="#3498db" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#3498db', flex: 1, fontWeight: '500', textDecorationLine: 'underline' }}>
+                            {item.mobileNumber}
+                          </Text>
+                        </TouchableOpacity>
                       ) : null}
                       {item.amcType ? (
                         <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>

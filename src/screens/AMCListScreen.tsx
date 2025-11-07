@@ -9,6 +9,8 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Image,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
@@ -93,6 +95,34 @@ const AMCListScreen: React.FC<AMCListScreenProps> = ({ onBack, onShowDetails }) 
     return searchText.includes(searchQuery.toLowerCase());
   });
 
+  const handlePhonePress = (phoneNumber: string): void => {
+    // Remove any non-numeric characters except +
+    const cleanedNumber = phoneNumber.replace(/[^\d+]/g, '');
+    if (cleanedNumber) {
+      const phoneUrl = `tel:${cleanedNumber}`;
+      Linking.openURL(phoneUrl).catch((err) => {
+        console.error('Error opening phone dialer:', err);
+        Alert.alert('Error', 'Unable to open phone dialer. Please check if your device supports phone calls.');
+      });
+    } else {
+      Alert.alert('Error', 'Invalid phone number');
+    }
+  };
+
+  const handleEmailPress = (email: string): void => {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      Alert.alert('Error', 'Invalid email address');
+      return;
+    }
+
+    const mailUrl = `mailto:${encodeURIComponent(trimmedEmail)}`;
+    Linking.openURL(mailUrl).catch((err) => {
+      console.error('Error opening email client:', err);
+      Alert.alert('Error', 'Unable to open email client. Please try again later.');
+    });
+  };
+
   console.log('Render - amcItems.length:', amcItems.length);
   console.log('Render - filteredAMCItems.length:', filteredAMCItems.length);
   console.log('Render - isLoading:', isLoading);
@@ -144,8 +174,11 @@ const AMCListScreen: React.FC<AMCListScreenProps> = ({ onBack, onShowDetails }) 
                 >
                   <View style={globalStyles.amcListItemLeft}>
                     <View style={globalStyles.amcListIconContainer}>
-                      <Ionicons name="calendar-outline" size={24} color="#3498db" />
-                      <Ionicons name="construct-outline" size={16} color="#9b59b6" style={globalStyles.amcListWrenchIcon} />
+                      <Image 
+                        source={require('../assets/Amc list.png')} 
+                        style={{ width: 24, height: 24 }}
+                        resizeMode="contain"
+                      />
                     </View>
                     <View style={globalStyles.amcListItemDetails}>
                       <Text style={globalStyles.amcListItemTitle}>
@@ -215,16 +248,28 @@ const AMCListScreen: React.FC<AMCListScreenProps> = ({ onBack, onShowDetails }) 
                         </View>
                       ) : null}
                       {item.customer_email ? (
-                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
-                          <Ionicons name="mail" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
-                          <Text style={{ fontSize: 13, color: '#3498db', flex: 1, fontWeight: '500' }}>{item.customer_email}</Text>
-                        </View>
+                        <TouchableOpacity
+                          style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}
+                          onPress={() => handleEmailPress(item.customer_email || '')}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons name="mail" size={14} color="#3498db" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#3498db', flex: 1, fontWeight: '500', textDecorationLine: 'underline' }}>
+                            {item.customer_email}
+                          </Text>
+                        </TouchableOpacity>
                       ) : null}
                       {item.customer_phone ? (
-                        <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>
-                          <Ionicons name="call" size={14} color="#7f8c8d" style={{ marginRight: 8, width: 18 }} />
-                          <Text style={{ fontSize: 13, color: '#34495e', flex: 1, fontWeight: '500' }}>{item.customer_phone}</Text>
-                        </View>
+                        <TouchableOpacity 
+                          style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}
+                          onPress={() => handlePhonePress(item.customer_phone || '')}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons name="call" size={14} color="#3498db" style={{ marginRight: 8, width: 18 }} />
+                          <Text style={{ fontSize: 13, color: '#3498db', flex: 1, fontWeight: '500', textDecorationLine: 'underline' }}>
+                            {item.customer_phone}
+                          </Text>
+                        </TouchableOpacity>
                       ) : null}
                       {item.equipment_no ? (
                         <View style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center' }}>

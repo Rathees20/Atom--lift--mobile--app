@@ -197,20 +197,31 @@ const LeaveListScreen: React.FC<LeaveListScreenProps> = ({ onBack, onAddNew, onS
           style={{
             backgroundColor: '#fff',
             marginHorizontal: 12,
-            marginTop: 16,
+            marginTop: 12,
             marginBottom: 8,
-            padding: 18,
-            borderRadius: 8,
+            padding: 14,
+            borderRadius: 10,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
+            shadowOpacity: 0.08,
+            shadowRadius: 8,
             elevation: 3,
           }}
         >
-          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 }}>
-            Leave Balance
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+            <View
+              style={{
+                width: 3,
+                height: 18,
+                backgroundColor: '#3498db',
+                borderRadius: 2,
+                marginRight: 10,
+              }}
+            />
+            <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2c3e50' }}>
+              Leave Balance
+            </Text>
+          </View>
           {leaveCounts.counts.map((count, index) => (
             <View
               key={index}
@@ -218,30 +229,30 @@ const LeaveListScreen: React.FC<LeaveListScreenProps> = ({ onBack, onAddNew, onS
                 flexDirection: 'row',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                paddingVertical: 8,
+                paddingVertical: 10,
                 borderBottomWidth: index < leaveCounts.counts.length - 1 ? 1 : 0,
-                borderBottomColor: '#ecf0f1',
+                borderBottomColor: '#f0f0f0',
               }}
             >
-              <Text style={{ fontSize: 14, color: '#2c3e50', flex: 1 }}>
+              <Text style={{ fontSize: 14, color: '#2c3e50', flex: 1, fontWeight: '500' }}>
                 {count.leave_type_display || leaveTypeDisplayMap[count.leave_type] || count.leave_type}
               </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <View style={{ alignItems: 'flex-end', marginRight: 12 }}>
-                  <Text style={{ fontSize: 12, color: '#7f8c8d' }}>Remaining</Text>
-                  <Text style={{ fontSize: 16, fontWeight: '600', color: '#27ae60' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={{ alignItems: 'center', minWidth: 50 }}>
+                  <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 2 }}>Remaining</Text>
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#27ae60' }}>
                     {count.total_remaining}
                   </Text>
                 </View>
-                <View style={{ alignItems: 'flex-end', marginRight: 12 }}>
-                  <Text style={{ fontSize: 12, color: '#7f8c8d' }}>Used</Text>
-                  <Text style={{ fontSize: 16, fontWeight: '600', color: '#e74c3c' }}>
+                <View style={{ alignItems: 'center', minWidth: 45 }}>
+                  <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 2 }}>Used</Text>
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#e74c3c' }}>
                     {count.total_used}
                   </Text>
                 </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={{ fontSize: 12, color: '#7f8c8d' }}>Total</Text>
-                  <Text style={{ fontSize: 16, fontWeight: '600', color: '#3498db' }}>
+                <View style={{ alignItems: 'center', minWidth: 45 }}>
+                  <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 2 }}>Total</Text>
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#3498db' }}>
                     {count.total_allotted}
                   </Text>
                 </View>
@@ -260,14 +271,20 @@ const LeaveListScreen: React.FC<LeaveListScreenProps> = ({ onBack, onAddNew, onS
                 alignItems: 'center',
               }}
             >
-              <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2c3e50' }}>Total</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={{ fontSize: 14, color: '#7f8c8d', marginRight: 16 }}>
-                  Remaining: <Text style={{ fontWeight: '600', color: '#27ae60' }}>{leaveCounts.total_all_leaves_remaining}</Text>
-                </Text>
-                <Text style={{ fontSize: 14, color: '#7f8c8d' }}>
-                  Used: <Text style={{ fontWeight: '600', color: '#e74c3c' }}>{leaveCounts.total_all_leaves_used || 0}</Text>
-                </Text>
+              <Text style={{ fontSize: 15, fontWeight: 'bold', color: '#2c3e50' }}>Total</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 2 }}>Remaining</Text>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: '#27ae60' }}>
+                    {leaveCounts.total_all_leaves_remaining}
+                  </Text>
+                </View>
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 2 }}>Used</Text>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: '#e74c3c' }}>
+                    {leaveCounts.total_all_leaves_used || 0}
+                  </Text>
+                </View>
               </View>
             </View>
           )}
@@ -322,14 +339,13 @@ const LeaveListScreen: React.FC<LeaveListScreenProps> = ({ onBack, onAddNew, onS
               style={{
                 backgroundColor: '#fff',
                 marginHorizontal: 12,
-                marginVertical: 8,
-                padding: 18,
-                borderRadius: 8,
-                minHeight: 100,
+                marginVertical: 6,
+                padding: 14,
+                borderRadius: 10,
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 4,
+                shadowOpacity: 0.08,
+                shadowRadius: 8,
                 elevation: 3,
               }}
               onPress={() => {
@@ -344,36 +360,47 @@ const LeaveListScreen: React.FC<LeaveListScreenProps> = ({ onBack, onAddNew, onS
                   flexDirection: 'row',
                   justifyContent: 'space-between',
                   alignItems: 'flex-start',
-                  marginBottom: 12,
+                  marginBottom: 10,
                 }}
               >
-                <View style={{ flex: 1 }}>
-                  {/* ✅ show user-friendly leave type */}
-                  <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 4 }}>
-                    {item.leave_type_display || leaveTypeDisplayMap[item.leave_type] || 'Leave Request'}
-                    {item.half_day ? ' (Half Day)' : ''}
-                  </Text>
-                  <Text style={{ fontSize: 14, color: '#7f8c8d', marginBottom: 4 }}>
-                    {formatDateRange(item.from_date, item.to_date)}
-                  </Text>
+                <View style={{ flex: 1, marginRight: 12 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+                    <Ionicons name="calendar-outline" size={18} color="#3498db" style={{ marginRight: 8 }} />
+                    <Text style={{ fontSize: 15, fontWeight: 'bold', color: '#2c3e50', flex: 1 }}>
+                      {item.leave_type_display || leaveTypeDisplayMap[item.leave_type] || 'Leave Request'}
+                      {item.half_day ? ' (Half Day)' : ''}
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                    <Ionicons name="time-outline" size={16} color="#7f8c8d" style={{ marginRight: 8 }} />
+                    <Text style={{ fontSize: 13, color: '#7f8c8d' }}>
+                      {formatDateRange(item.from_date, item.to_date)}
+                    </Text>
+                  </View>
                   {item.email && (
-                    <Text style={{ fontSize: 12, color: '#95a5a6' }}>{item.email}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Ionicons name="mail-outline" size={16} color="#7f8c8d" style={{ marginRight: 8 }} />
+                      <Text style={{ fontSize: 12, color: '#95a5a6' }}>{item.email}</Text>
+                    </View>
                   )}
                 </View>
                 <View
                   style={{
                     backgroundColor: getStatusColor(item.status || 'pending') + '20',
                     paddingHorizontal: 12,
-                    paddingVertical: 6,
-                    borderRadius: 12,
+                    paddingVertical: 8,
+                    borderRadius: 16,
+                    borderWidth: 2,
+                    borderColor: getStatusColor(item.status || 'pending'),
                   }}
                 >
                   <Text
                     style={{
                       color: getStatusColor(item.status || 'pending'),
                       fontSize: 12,
-                      fontWeight: '600',
+                      fontWeight: '700',
                       textTransform: 'capitalize',
+                      letterSpacing: 0.5,
                     }}
                   >
                     {item.status || 'Pending'}
@@ -382,16 +409,38 @@ const LeaveListScreen: React.FC<LeaveListScreenProps> = ({ onBack, onAddNew, onS
               </View>
 
               {item.reason && (
-                <View style={{ marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#ecf0f1' }}>
-                  <Text style={{ fontSize: 12, color: '#7f8c8d', marginBottom: 4 }}>Reason:</Text>
-                  <Text style={{ fontSize: 14, color: '#2c3e50' }}>{item.reason}</Text>
+                <View style={{ 
+                  marginTop: 10, 
+                  paddingTop: 10, 
+                  borderTopWidth: 1, 
+                  borderTopColor: '#f0f0f0' 
+                }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 4 }}>
+                    <Ionicons name="document-text-outline" size={16} color="#7f8c8d" style={{ marginRight: 8, marginTop: 2 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, color: '#7f8c8d', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>Reason</Text>
+                      <Text style={{ fontSize: 13, color: '#2c3e50', lineHeight: 18 }} numberOfLines={2}>
+                        {item.reason}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
               )}
 
               {item.created_at && (
-                <Text style={{ fontSize: 11, color: '#bdc3c7', marginTop: 8 }}>
-                  Created: {formatDate(item.created_at)}
-                </Text>
+                <View style={{ 
+                  marginTop: 8, 
+                  paddingTop: 8, 
+                  borderTopWidth: item.reason ? 0 : 1, 
+                  borderTopColor: '#f0f0f0',
+                  flexDirection: 'row',
+                  alignItems: 'center'
+                }}>
+                  <Ionicons name="time" size={14} color="#bdc3c7" style={{ marginRight: 6 }} />
+                  <Text style={{ fontSize: 11, color: '#bdc3c7' }}>
+                    Created: {formatDate(item.created_at)}
+                  </Text>
+                </View>
               )}
             </TouchableOpacity>
           ))

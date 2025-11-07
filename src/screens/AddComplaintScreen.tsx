@@ -196,19 +196,53 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
   };
 
   const handleSave = async (): Promise<void> => {
-    // Validation
-    if (!formData.complaint_type || !formData.customer || !formData.subject) {
-      showErrorAlert('Please fill in all required fields');
+    // Validation - Check each required field individually (all fields except Message are required)
+    const missingFields: string[] = [];
+    
+    if (!formData.complaint_type || !formData.complaint_type.trim()) {
+      missingFields.push('Type');
+    }
+    
+    if (!formData.customer || !formData.customer.trim()) {
+      missingFields.push('Customer Site');
+    }
+    
+    if (!formData.contact_person_name || !formData.contact_person_name.trim()) {
+      missingFields.push('Contact Person Name');
+    }
+    
+    if (!formData.contact_person_mobile || !formData.contact_person_mobile.trim()) {
+      missingFields.push('Contact Person Mobile No.');
+    }
+    
+    if (!formData.block_wing || !formData.block_wing.trim()) {
+      missingFields.push('Block/Wing');
+    }
+    
+    if (!formData.assign_to || !formData.assign_to.trim()) {
+      missingFields.push('Assign');
+    }
+    
+    if (!formData.priority || !formData.priority.trim()) {
+      missingFields.push('Priority');
+    }
+    
+    if (!formData.subject || !formData.subject.trim()) {
+      missingFields.push('Subject');
+    }
+
+    // Show error with specific field names if any are missing
+    if (missingFields.length > 0) {
+      const fieldList = missingFields.join(', ');
+      showErrorAlert(`Please fill in the following required fields: ${fieldList}`);
       return;
     }
 
-    // Validate contact person mobile if provided
-    if (formData.contact_person_mobile && formData.contact_person_mobile.trim()) {
-      const mobileError = getMobileNumberError(formData.contact_person_mobile);
-      if (mobileError) {
-        showErrorAlert(mobileError);
-        return;
-      }
+    // Validate contact person mobile format
+    const mobileError = getMobileNumberError(formData.contact_person_mobile);
+    if (mobileError) {
+      showErrorAlert(mobileError);
+      return;
     }
 
     setSubmitting(true);
@@ -266,7 +300,7 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
           {submitting ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Ionicons name="checkmark" size={20} color="#fff" />
+            <Ionicons name="save-outline" size={20} color="#fff" />
           )}
           <Text style={globalStyles.complaintSaveText}>
             {submitting ? 'Saving...' : 'Save'}
@@ -278,7 +312,9 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
       <ScrollView style={globalStyles.complaintContent} showsVerticalScrollIndicator={false}>
         {/* Type Field */}
         <View style={globalStyles.complaintFieldContainer}>
-          <Text style={globalStyles.complaintFieldLabel}>Type:</Text>
+          <Text style={globalStyles.complaintFieldLabel}>
+            Type: <Text style={{ color: '#e74c3c' }}>*</Text>
+          </Text>
           <TouchableOpacity
             style={globalStyles.complaintDropdownContainer}
             onPress={() => openDropdown('complaint_type', complaintTypes, 'name')}
@@ -295,7 +331,9 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
 
         {/* Customer Site Field */}
         <View style={globalStyles.complaintFieldContainer}>
-          <Text style={globalStyles.complaintFieldLabel}>Customer Site:</Text>
+          <Text style={globalStyles.complaintFieldLabel}>
+            Customer Site: <Text style={{ color: '#e74c3c' }}>*</Text>
+          </Text>
           <TouchableOpacity
             style={globalStyles.complaintDropdownContainer}
             onPress={() => openDropdown('customer', customers, 'site_name')}
@@ -312,7 +350,9 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
 
         {/* Contact Person Name Field */}
         <View style={globalStyles.complaintFieldContainer}>
-          <Text style={globalStyles.complaintFieldLabel}>Contact Person Name</Text>
+          <Text style={globalStyles.complaintFieldLabel}>
+            Contact Person Name <Text style={{ color: '#e74c3c' }}>*</Text>
+          </Text>
           <TextInput
             style={globalStyles.complaintTextInput}
             placeholder="Enter Contact Person Name"
@@ -323,7 +363,9 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
 
         {/* Contact Person Mobile Field */}
         <View style={globalStyles.complaintFieldContainer}>
-          <Text style={globalStyles.complaintFieldLabel}>Contact Person Mobile No.</Text>
+          <Text style={globalStyles.complaintFieldLabel}>
+            Contact Person Mobile No. <Text style={{ color: '#e74c3c' }}>*</Text>
+          </Text>
           <TextInput
             style={globalStyles.complaintTextInput}
             placeholder="Enter Mobile Number"
@@ -335,7 +377,9 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
 
         {/* Block/Wing Field */}
         <View style={globalStyles.complaintFieldContainer}>
-          <Text style={globalStyles.complaintFieldLabel}>Block/Wing</Text>
+          <Text style={globalStyles.complaintFieldLabel}>
+            Block/Wing <Text style={{ color: '#e74c3c' }}>*</Text>
+          </Text>
           <TextInput
             style={globalStyles.complaintTextInput}
             placeholder="Enter Block/Wing"
@@ -346,7 +390,9 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
 
         {/* Assign Field */}
         <View style={globalStyles.complaintFieldContainer}>
-          <Text style={globalStyles.complaintFieldLabel}>Assign:</Text>
+          <Text style={globalStyles.complaintFieldLabel}>
+            Assign: <Text style={{ color: '#e74c3c' }}>*</Text>
+          </Text>
           <TouchableOpacity
             style={globalStyles.complaintDropdownContainer}
             onPress={() => openDropdown('assign_to', executives, 'full_name')}
@@ -363,7 +409,9 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
 
         {/* Priority Field */}
         <View style={globalStyles.complaintFieldContainer}>
-          <Text style={globalStyles.complaintFieldLabel}>Priority:</Text>
+          <Text style={globalStyles.complaintFieldLabel}>
+            Priority: <Text style={{ color: '#e74c3c' }}>*</Text>
+          </Text>
           <TouchableOpacity
             style={globalStyles.complaintDropdownContainer}
             onPress={() => openDropdown('priority', priorities, 'name')}
@@ -380,7 +428,9 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
 
         {/* Subject Field */}
         <View style={globalStyles.complaintFieldContainer}>
-          <Text style={globalStyles.complaintFieldLabel}>Subject</Text>
+          <Text style={globalStyles.complaintFieldLabel}>
+            Subject <Text style={{ color: '#e74c3c' }}>*</Text>
+          </Text>
           <TextInput
             style={globalStyles.complaintTextInput}
             placeholder="Enter Subject"
@@ -391,7 +441,9 @@ const AddComplaintScreen: React.FC<AddComplaintScreenProps> = ({ onBack, onSave 
 
         {/* Message Field */}
         <View style={globalStyles.complaintFieldContainer}>
-          <Text style={globalStyles.complaintFieldLabel}>Message</Text>
+          <Text style={globalStyles.complaintFieldLabel}>
+            Message <Text style={{ color: '#7f8c8d', fontSize: 14 }}>(Optional)</Text>
+          </Text>
           <TextInput
             style={globalStyles.complaintMessageInput}
             placeholder="Enter your message here..."

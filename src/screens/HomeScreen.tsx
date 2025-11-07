@@ -8,6 +8,8 @@ import {
   Modal,
   TextInput,
   Platform,
+  Image,
+  ImageSourcePropType,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -166,25 +168,25 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
     {
       id: 1,
       title: 'Tickets',
-      icon: 'list-outline' as const,
+      imageSource: require('../assets/ticket.png'),
       color: '#3498db',
     },
     {
       id: 2,
       title: 'Routine Services',
-      icon: 'settings-outline' as const,
+      imageSource: require('../assets/Routine service.png'),
       color: '#3498db',
     },
     {
       id: 3,
       title: 'Customers',
-      icon: 'people-outline' as const,
+      imageSource: require('../assets/customer.png'),
       color: '#3498db',
     },
     {
       id: 4,
       title: 'AMC',
-      icon: 'calendar-outline' as const,
+      imageSource: require('../assets/Amc list.png'),
       color: '#9b59b6',
     },
   ];
@@ -692,8 +694,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
               style={globalStyles.homeMenuCard}
               onPress={() => handleMenuPress(item)}
             >
-              <View style={[globalStyles.homeIconContainer, { backgroundColor: item.color }]}>
-                <Ionicons name={item.icon} size={32} color="#fff" />
+              <View style={globalStyles.homeIconContainer}>
+                {item.imageSource ? (
+                  <Image 
+                    source={item.imageSource as ImageSourcePropType} 
+                    style={{ width: 44, height: 44 }}
+                    resizeMode="contain"
+                  />
+                ) : item.icon ? (
+                  <Ionicons name={item.icon} size={44} color={item.color} />
+                ) : null}
               </View>
               <Text style={globalStyles.homeMenuTitle}>{item.title}</Text>
             </TouchableOpacity>

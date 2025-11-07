@@ -97,14 +97,39 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
     try {
       const result = await createAMCType({ name: newAMCTypeName.trim() });
       
-      if (result.success) {
-        showSuccessAlert(result.message || 'AMC type created successfully');
+      console.log('AMC type creation result:', result); // Debug log
+      
+      // Get the message from result
+      const resultMessage = result.message || (result as any).msg || 'AMC type created successfully';
+      
+      // Check if message indicates success (case-insensitive) - prioritize this check
+      const isSuccessMessage = resultMessage.toLowerCase().includes('success') || 
+                               resultMessage.toLowerCase().includes('created successfully') ||
+                               resultMessage.toLowerCase().includes('successfully');
+      
+      // Prioritize message content - if message says success, treat as success regardless of success field
+      // If no error was thrown, we should treat as success by default
+      const shouldTreatAsSuccess = isSuccessMessage || 
+                                   result.success === true || 
+                                   result.success === undefined;
+      
+      if (shouldTreatAsSuccess) {
+        console.log('Showing success alert:', resultMessage); // Debug log
         setNewAMCTypeName('');
         setShowAMCTypeModal(false);
-        // Refresh AMC types list
-        await fetchAMCTypes();
+        // Refresh AMC types list silently (don't show error if refresh fails)
+        try {
+          await fetchAMCTypes();
+        } catch (refreshError) {
+          console.error('Error refreshing AMC types list:', refreshError);
+          // Don't show error to user, just log it
+        }
+        // Show success alert after refreshing
+        showSuccessAlert(resultMessage);
       } else {
-        showErrorAlert(result.message || 'Failed to create AMC type');
+        // Only show error if success is explicitly false AND message doesn't indicate success
+        console.log('Showing error alert:', resultMessage); // Debug log
+        showErrorAlert(resultMessage || 'Failed to create AMC type');
       }
     } catch (error: any) {
       console.error('Error creating AMC type:', error);
@@ -123,7 +148,7 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
 
   const handleDateSelect = (field: 'startDate' | 'endDate'): void => {
     setSelectedDateField(field);
-    // Initialize temp date with existing date if available, otherwise use today
+    // Initialize temp date with existing date if available, otherwise use today or start date
     const existingDate = formData[field];
     if (existingDate) {
       // Try to parse the existing date string
@@ -131,18 +156,66 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
       if (!isNaN(parsedDate.getTime())) {
         setTempDate(parsedDate);
       } else {
-        setTempDate(new Date());
+        // If end date picker and start date exists, initialize to start date
+        if (field === 'endDate' && formData.startDate) {
+          const startDate = new Date(formData.startDate);
+          if (!isNaN(startDate.getTime())) {
+            setTempDate(startDate);
+          } else {
+            setTempDate(new Date());
+          }
+        } else {
+          setTempDate(new Date());
+        }
       }
     } else {
-      setTempDate(new Date());
+      // If end date picker and start date exists, initialize to start date
+      if (field === 'endDate' && formData.startDate) {
+        const startDate = new Date(formData.startDate);
+        if (!isNaN(startDate.getTime())) {
+          setTempDate(startDate);
+        } else {
+          setTempDate(new Date());
+        }
+      } else {
+        setTempDate(new Date());
+      }
     }
     setShowDatePicker(true);
+  };
+
+  const compareDates = (date1Str: string, date2Str: string): number => {
+    // Parse dates in YYYY-MM-DD format
+    const date1 = new Date(date1Str);
+    const date2 = new Date(date2Str);
+    // Reset time to compare only dates
+    date1.setHours(0, 0, 0, 0);
+    date2.setHours(0, 0, 0, 0);
+    return date1.getTime() - date2.getTime();
   };
 
   const handleDateConfirm = (): void => {
     if (selectedDateField) {
       // Format date as YYYY-MM-DD for API
       const formattedDate = tempDate.toISOString().split('T')[0];
+      
+      // Validate date range
+      if (selectedDateField === 'endDate' && formData.startDate) {
+        // If selecting end date, check it's not before start date
+        const dateComparison = compareDates(formattedDate, formData.startDate);
+        if (dateComparison < 0) {
+          showErrorAlert('End Date cannot be before Start Date. Please select a date on or after the Start Date.');
+          return;
+        }
+      } else if (selectedDateField === 'startDate' && formData.endDate) {
+        // If selecting start date, check it's not after end date
+        const dateComparison = compareDates(formData.endDate, formattedDate);
+        if (dateComparison < 0) {
+          showErrorAlert('Start Date cannot be after End Date. Please select End Date first or update it.');
+          return;
+        }
+      }
+      
       handleInputChange(selectedDateField, formattedDate);
     }
     setShowDatePicker(false);
@@ -186,6 +259,16 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
       showErrorAlert('Please select end date');
       return;
     }
+    
+    // Validate that end date is not before start date
+    if (formData.startDate && formData.endDate) {
+      const dateComparison = compareDates(formData.endDate, formData.startDate);
+      if (dateComparison < 0) {
+        showErrorAlert('End Date cannot be before Start Date. Please select a valid date range.');
+        return;
+      }
+    }
+    
     if (!formData.amcType.trim()) {
       showErrorAlert('Please select AMC type');
       return;
@@ -566,36 +649,36 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
             style={{
               backgroundColor: '#fff',
               borderRadius: 12,
-              width: '90%',
-              maxWidth: 400,
-              padding: 20,
+              width: '85%',
+              maxWidth: 320,
+              padding: 15,
             }}
             activeOpacity={1}
             onPress={() => {}}
           >
             {/* Header */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <Text style={{ fontSize: 20, fontWeight: '600', color: '#2c3e50' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={{ fontSize: 16, fontWeight: '600', color: '#2c3e50' }}>
                 Select {selectedDateField === 'startDate' ? 'Start' : 'End'} Date
               </Text>
               <TouchableOpacity onPress={handleDateCancel}>
-                <Ionicons name="close" size={24} color="#666" />
+                <Ionicons name="close" size={20} color="#666" />
               </TouchableOpacity>
             </View>
 
             {/* Month Navigation */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <TouchableOpacity
                 onPress={() => {
                   const newDate = new Date(tempDate);
                   newDate.setMonth(tempDate.getMonth() - 1);
                   setTempDate(newDate);
                 }}
-                style={{ padding: 8 }}
+                style={{ padding: 6 }}
               >
-                <Ionicons name="chevron-back" size={24} color="#3498db" />
+                <Ionicons name="chevron-back" size={20} color="#3498db" />
               </TouchableOpacity>
-              <Text style={{ fontSize: 18, fontWeight: '600', color: '#2c3e50' }}>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: '#2c3e50' }}>
                 {tempDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </Text>
               <TouchableOpacity
@@ -604,17 +687,17 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
                   newDate.setMonth(tempDate.getMonth() + 1);
                   setTempDate(newDate);
                 }}
-                style={{ padding: 8 }}
+                style={{ padding: 6 }}
               >
-                <Ionicons name="chevron-forward" size={24} color="#3498db" />
+                <Ionicons name="chevron-forward" size={20} color="#3498db" />
               </TouchableOpacity>
             </View>
 
             {/* Day Names */}
-            <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+            <View style={{ flexDirection: 'row', marginBottom: 6 }}>
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                <View key={day} style={{ flex: 1, alignItems: 'center', paddingVertical: 8 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#7f8c8d' }}>{day}</Text>
+                <View key={day} style={{ flex: 1, alignItems: 'center', paddingVertical: 4 }}>
+                  <Text style={{ fontSize: 10, fontWeight: '600', color: '#7f8c8d' }}>{day}</Text>
                 </View>
               ))}
             </View>
@@ -645,28 +728,48 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
                   const isToday = day === new Date().getDate() && 
                                  month === new Date().getMonth() && 
                                  year === new Date().getFullYear();
+                  
+                  // Check if this date should be disabled (for End Date picker, disable dates before Start Date)
+                  let isDisabled = false;
+                  if (selectedDateField === 'endDate' && formData.startDate) {
+                    const currentDayDate = new Date(year, month, day);
+                    const startDateObj = new Date(formData.startDate);
+                    currentDayDate.setHours(0, 0, 0, 0);
+                    startDateObj.setHours(0, 0, 0, 0);
+                    isDisabled = currentDayDate < startDateObj;
+                  }
+                  
                   return (
                     <TouchableOpacity
                       key={day}
                       onPress={() => {
+                        if (isDisabled) return;
                         const newDate = new Date(tempDate);
                         newDate.setDate(day);
                         setTempDate(newDate);
                       }}
+                      disabled={isDisabled}
                       style={{
                         width: '14.28%',
                         aspectRatio: 1,
                         justifyContent: 'center',
                         alignItems: 'center',
-                        borderRadius: 20,
+                        borderRadius: 15,
                         backgroundColor: isSelected ? '#3498db' : 'transparent',
-                        marginVertical: 2,
+                        marginVertical: 1,
+                        opacity: isDisabled ? 0.3 : 1,
                       }}
                     >
                       <Text
                         style={{
-                          fontSize: 14,
-                          color: isSelected ? '#fff' : isToday ? '#3498db' : '#2c3e50',
+                          fontSize: 11,
+                          color: isDisabled 
+                            ? '#bdc3c7' 
+                            : isSelected 
+                              ? '#fff' 
+                              : isToday 
+                                ? '#3498db' 
+                                : '#2c3e50',
                           fontWeight: isSelected || isToday ? '600' : '400',
                         }}
                       >
@@ -681,14 +784,14 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
             {/* Selected Date Display */}
             <View style={{
               backgroundColor: '#f8f9fa',
-              padding: 12,
-              borderRadius: 8,
+              padding: 8,
+              borderRadius: 6,
               alignItems: 'center',
-              marginTop: 15,
-              marginBottom: 15,
+              marginTop: 10,
+              marginBottom: 10,
             }}>
               <Text style={{
-                fontSize: 14,
+                fontSize: 12,
                 color: '#2c3e50',
                 fontWeight: '500'
               }}>
@@ -702,30 +805,30 @@ const CreateAMCScreen: React.FC<CreateAMCScreenProps> = ({ onBack, onSave }) => 
             </View>
 
             {/* Buttons */}
-            <View style={{ flexDirection: 'row', marginTop: 10, gap: 10 }}>
+            <View style={{ flexDirection: 'row', marginTop: 8, gap: 8 }}>
               <TouchableOpacity
                 onPress={handleDateCancel}
                 style={{
                   flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 8,
+                  paddingVertical: 10,
+                  borderRadius: 6,
                   backgroundColor: '#e74c3c',
                   alignItems: 'center',
                 }}
               >
-                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Cancel</Text>
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleDateConfirm}
                 style={{
                   flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 8,
+                  paddingVertical: 10,
+                  borderRadius: 6,
                   backgroundColor: '#3498db',
                   alignItems: 'center',
                 }}
               >
-                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Select</Text>
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Select</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>

@@ -76,17 +76,20 @@ const MaterialRequisitionScreen: React.FC<MaterialRequisitionScreenProps> = ({ o
   };
 
   const handleSave = async (): Promise<void> => {
-    // Basic validation
+    // Validation - Check each required field individually
+    const missingFields: string[] = [];
+    
     if (!formData.name.trim()) {
-      showErrorAlert('Please enter a name for the material request');
-      return;
+      missingFields.push('Request Name');
     }
     if (!formData.item.trim()) {
-      showErrorAlert('Please enter the item name');
-      return;
+      missingFields.push('Item');
     }
-    if (!formData.description.trim()) {
-      showErrorAlert('Please enter a description');
+
+    // Show error with specific field names if any are missing
+    if (missingFields.length > 0) {
+      const fieldList = missingFields.join(', ');
+      showErrorAlert(`Please fill in the following required fields: ${fieldList}`);
       return;
     }
 
@@ -164,7 +167,9 @@ const MaterialRequisitionScreen: React.FC<MaterialRequisitionScreenProps> = ({ o
           <View>
             {/* Name Field */}
             <View style={globalStyles.complaintFieldContainer}>
-              <Text style={globalStyles.complaintFieldLabel}>Request Name:</Text>
+              <Text style={globalStyles.complaintFieldLabel}>
+                Request Name: <Text style={{ color: '#e74c3c' }}>*</Text>
+              </Text>
               <TextInput
                 style={globalStyles.complaintTextInput}
                 placeholder="Enter request name"
@@ -175,7 +180,9 @@ const MaterialRequisitionScreen: React.FC<MaterialRequisitionScreenProps> = ({ o
 
             {/* Item Field */}
             <View style={globalStyles.complaintFieldContainer}>
-              <Text style={globalStyles.complaintFieldLabel}>Item:</Text>
+              <Text style={globalStyles.complaintFieldLabel}>
+                Item: <Text style={{ color: '#e74c3c' }}>*</Text>
+              </Text>
               <TouchableOpacity
                 style={globalStyles.complaintDropdownContainer}
                 onPress={() => setShowItemDropdown(!showItemDropdown)}
@@ -233,7 +240,9 @@ const MaterialRequisitionScreen: React.FC<MaterialRequisitionScreenProps> = ({ o
 
             {/* Brand Field */}
             <View style={globalStyles.complaintFieldContainer}>
-              <Text style={globalStyles.complaintFieldLabel}>Brand (Optional):</Text>
+              <Text style={globalStyles.complaintFieldLabel}>
+                Brand <Text style={{ color: '#7f8c8d', fontSize: 14 }}>(Optional)</Text>
+              </Text>
               <TextInput
                 style={globalStyles.complaintTextInput}
                 placeholder="Enter brand name"
@@ -244,7 +253,9 @@ const MaterialRequisitionScreen: React.FC<MaterialRequisitionScreenProps> = ({ o
 
             {/* Description Field */}
             <View style={globalStyles.complaintFieldContainer}>
-              <Text style={globalStyles.complaintFieldLabel}>Description:</Text>
+              <Text style={globalStyles.complaintFieldLabel}>
+                Description <Text style={{ color: '#7f8c8d', fontSize: 14 }}>(Optional)</Text>
+              </Text>
               <TextInput
                 style={globalStyles.complaintMessageInput}
                 placeholder="Enter description here..."
