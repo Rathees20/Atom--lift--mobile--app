@@ -9,6 +9,7 @@ import {
   Dimensions,
   ActivityIndicator,
   Alert,
+  StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
@@ -282,29 +283,39 @@ const ViewAttendanceScreen: React.FC<ViewAttendanceScreenProps> = ({ onBack }) =
 
           {/* Calendar Grid */}
           <View style={globalStyles.attendanceCalendarGrid}>
-            {days.map((day, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  globalStyles.attendanceCalendarDay,
-                  !day.isCurrentMonth && globalStyles.attendanceCalendarDayInactive,
-                  selectedDate && 
-                    day.fullDate.toDateString() === selectedDate.toDateString() && 
-                    globalStyles.attendanceCalendarDaySelected
-                ]}
-                onPress={() => setSelectedDate(day.fullDate)}
-              >
-                <Text style={[
-                  globalStyles.attendanceCalendarDayText,
-                  !day.isCurrentMonth && globalStyles.attendanceCalendarDayTextInactive,
-                  selectedDate && 
-                    day.fullDate.toDateString() === selectedDate.toDateString() && 
-                    globalStyles.attendanceCalendarDayTextSelected
-                ]}>
-                  {day.date}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {days.map((day, index) => {
+              const isSelected =
+                selectedDate &&
+                day.fullDate.toDateString() === selectedDate.toDateString();
+              const isInactive = !day.isCurrentMonth;
+
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={globalStyles.attendanceCalendarDay}
+                  onPress={() => setSelectedDate(day.fullDate)}
+                  activeOpacity={0.8}
+                >
+                  <View
+                    style={[
+                      styles.attendanceCalendarDayInner,
+                      isInactive && globalStyles.attendanceCalendarDayInactive,
+                      isSelected && globalStyles.attendanceCalendarDaySelected,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        globalStyles.attendanceCalendarDayText,
+                        isInactive && globalStyles.attendanceCalendarDayTextInactive,
+                        isSelected && globalStyles.attendanceCalendarDayTextSelected,
+                      ]}
+                    >
+                      {day.date}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
@@ -518,3 +529,13 @@ const ViewAttendanceScreen: React.FC<ViewAttendanceScreenProps> = ({ onBack }) =
 };
 
 export default ViewAttendanceScreen;
+
+const styles = StyleSheet.create({
+  attendanceCalendarDayInner: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
