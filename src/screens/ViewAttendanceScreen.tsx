@@ -67,6 +67,9 @@ const ViewAttendanceScreen: React.FC<ViewAttendanceScreenProps> = ({ onBack }) =
     { label: 'Present Overtime', count: attendanceData.presentOvertime, color: '#f39c12' },
   ];
 
+  const totalAttendanceRecords = attendanceStatuses.reduce((sum, status) => sum + status.count, 0);
+  const activeAttendanceStatuses = attendanceStatuses.filter((status) => status.count > 0);
+
   // Fetch attendance records for the selected month
   const fetchAttendanceRecords = async () => {
     try {
@@ -322,14 +325,88 @@ const ViewAttendanceScreen: React.FC<ViewAttendanceScreenProps> = ({ onBack }) =
             ))}
           </View>
 
-          {/* Chart Placeholder */}
+          {/* Chart */}
           <View style={globalStyles.attendanceChartContainer}>
-            <View style={globalStyles.attendanceChartPlaceholder}>
-              <Ionicons name="pie-chart-outline" size={60} color="#bdc3c7" />
-              <Text style={globalStyles.attendanceChartPlaceholderText}>
-                Attendance Chart
-              </Text>
-            </View>
+            {totalAttendanceRecords > 0 && activeAttendanceStatuses.length > 0 ? (
+              <View style={{
+                backgroundColor: '#f0f4f7',
+                padding: 16,
+                borderRadius: 12,
+              }}>
+                <View style={{
+                  flexDirection: 'row',
+                  height: 26,
+                  borderRadius: 13,
+                  overflow: 'hidden',
+                  backgroundColor: '#d6dde4',
+                }}>
+                  {activeAttendanceStatuses.map((status) => (
+                    <View
+                      key={status.label}
+                      style={{
+                        flex: status.count,
+                        backgroundColor: status.color,
+                      }}
+                    />
+                  ))}
+                </View>
+
+                <View style={{ marginTop: 16 }}>
+                  {activeAttendanceStatuses.map((status) => {
+                    const percentage = Math.round((status.count / totalAttendanceRecords) * 100);
+                    return (
+                      <View
+                        key={`details-${status.label}`}
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: 8,
+                        }}
+                      >
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <View
+                            style={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: 3,
+                              backgroundColor: status.color,
+                              marginRight: 8,
+                            }}
+                          />
+                          <Text style={{
+                            fontSize: 13,
+                            color: '#34495e',
+                            fontWeight: '600',
+                          }}>
+                            {status.label}
+                          </Text>
+                        </View>
+                        <Text style={{ fontSize: 13, color: '#2c3e50', fontWeight: '600' }}>
+                          {status.count} ({percentage}%)
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+
+                <Text style={{
+                  marginTop: 12,
+                  fontSize: 12,
+                  color: '#7f8c8d',
+                  textAlign: 'right',
+                }}>
+                  Total records: {totalAttendanceRecords}
+                </Text>
+              </View>
+            ) : (
+              <View style={globalStyles.attendanceChartPlaceholder}>
+                <Ionicons name="pie-chart-outline" size={60} color="#bdc3c7" />
+                <Text style={globalStyles.attendanceChartPlaceholderText}>
+                  Attendance data will appear once records are available
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -50,8 +50,14 @@ const SignaturePad: React.FC<SignaturePadProps> = ({ onSignatureChange, signatur
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const signatureRef = useRef<View>(null);
   const [containerDimensions, setContainerDimensions] = useState({ width: 300, height: 100 });
+  const currentPathRef = useRef<Array<{ x: number; y: number }>>([]);
+  const isDrawingRef = useRef<boolean>(false);
 
-  const getCoordinates = (evt: any, gestureState: any) => {
+  useEffect(() => {
+    isDrawingRef.current = isDrawing;
+  }, [isDrawing]);
+
+  const getCoordinates = useCallback((evt: any, gestureState: any) => {
     // PanResponder provides coordinates relative to the responder view
     // Use locationX/locationY from nativeEvent which are relative to the view
     if (evt && evt.nativeEvent) {
@@ -68,74 +74,91 @@ const SignaturePad: React.FC<SignaturePadProps> = ({ onSignatureChange, signatur
       return { x, y };
     }
     return { x: 0, y: 0 };
-  };
+  }, [containerDimensions.height, containerDimensions.width]);
 
-  const startDrawing = (evt: any, gestureState: any) => {
-    setIsDrawing(true);
+  const startDrawing = useCallback((evt: any, gestureState: any) => {
     const { x, y } = getCoordinates(evt, gestureState);
-    console.log('Start drawing at:', x, y, 'Container:', containerDimensions);
-    setCurrentPath([{ x, y }]);
-  };
+    isDrawingRef.current = true;
+    setIsDrawing(true);
+    const startingPath = [{ x, y }];
+    currentPathRef.current = startingPath;
+    setCurrentPath(startingPath);
+  }, [getCoordinates]);
 
-  const continueDrawing = (evt: any, gestureState: any) => {
-    if (!isDrawing) return;
+  const continueDrawing = useCallback((evt: any, gestureState: any) => {
+    if (!isDrawingRef.current) return;
     const { x, y } = getCoordinates(evt, gestureState);
     setCurrentPath(prev => {
-      // Only add point if it's different from the last one (avoid duplicates)
-      const lastPoint = prev[prev.length - 1];
+      const workingPath = prev.length ? prev : currentPathRef.current;
+      const lastPoint = workingPath[workingPath.length - 1];
       if (!lastPoint || Math.abs(lastPoint.x - x) > 0.5 || Math.abs(lastPoint.y - y) > 0.5) {
-        return [...prev, { x, y }];
+        const updatedPath = [...workingPath, { x, y }];
+        currentPathRef.current = updatedPath;
+        return updatedPath;
       }
-      return prev;
+      currentPathRef.current = workingPath;
+      return workingPath;
     });
-  };
+  }, [getCoordinates]);
 
-  const finishDrawing = () => {
-    if (isDrawing && currentPath.length > 0) {
-      // Convert points to SVG path
-      let pathString = `M${currentPath[0].x},${currentPath[0].y}`;
-      for (let i = 1; i < currentPath.length; i++) {
-        pathString += ` L${currentPath[i].x},${currentPath[i].y}`;
-      }
-      
-      const newPaths = [...paths, { path: pathString, color: '#000', width: 2 }];
-      setPaths(newPaths);
+  const finishDrawing = useCallback(() => {
+    if (!isDrawingRef.current || currentPathRef.current.length === 0) {
+      isDrawingRef.current = false;
+      setIsDrawing(false);
       setCurrentPath([]);
-
-      // Convert paths to SVG string
-      const svgPaths = newPaths.map(p => `<path d="${p.path}" stroke="${p.color}" stroke-width="${p.width}" fill="none"/>`).join('');
-      const svg = `<svg width="${containerDimensions.width}" height="${containerDimensions.height}" xmlns="http://www.w3.org/2000/svg">${svgPaths}</svg>`;
-      console.log('Signature captured:', svg);
-      onSignatureChange(svg);
+      return;
     }
+
+    const completedPath = currentPathRef.current;
+    let pathString = `M${completedPath[0].x},${completedPath[0].y}`;
+    for (let i = 1; i < completedPath.length; i++) {
+      pathString += ` L${completedPath[i].x},${completedPath[i].y}`;
+    }
+
+    setPaths(prevPaths => {
+      const updatedPaths = [...prevPaths, { path: pathString, color: '#000', width: 2 }];
+      const svgPaths = updatedPaths
+        .map(p => `<path d="${p.path}" stroke="${p.color}" stroke-width="${p.width}" fill="none"/>`)
+        .join('');
+      const svg = `<svg width="${containerDimensions.width}" height="${containerDimensions.height}" xmlns="http://www.w3.org/2000/svg">${svgPaths}</svg>`;
+      onSignatureChange(svg);
+      return updatedPaths;
+    });
+
+    currentPathRef.current = [];
+    isDrawingRef.current = false;
+    setCurrentPath([]);
     setIsDrawing(false);
-  };
+  }, [containerDimensions.height, containerDimensions.width, onSignatureChange]);
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: startDrawing,
-      onPanResponderMove: continueDrawing,
-      onPanResponderRelease: finishDrawing,
-      onPanResponderTerminate: finishDrawing,
-    })
-  ).current;
-
-  const handleLayout = (event: any) => {
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderGrant: (evt, gestureState) => startDrawing(evt, gestureState),
+        onPanResponderMove: (evt, gestureState) => continueDrawing(evt, gestureState),
+        onPanResponderRelease: () => finishDrawing(),
+        onPanResponderTerminate: () => finishDrawing(),
+      }),
+    [continueDrawing, finishDrawing, startDrawing]
+  );
+  const handleLayout = useCallback((event: any) => {
     const { width, height } = event.nativeEvent.layout;
     if (width > 0 && height > 0) {
       setContainerDimensions({ width, height });
       console.log('Container dimensions:', width, height);
     }
-  };
+  }, []);
 
-  const clearSignature = () => {
+  const clearSignature = useCallback(() => {
+    currentPathRef.current = [];
+    isDrawingRef.current = false;
     setPaths([]);
     setCurrentPath([]);
     setIsDrawing(false);
     onSignatureChange('');
-  };
+  }, [onSignatureChange]);
 
   // Parse existing signature if provided
   useEffect(() => {
@@ -154,6 +177,7 @@ const SignaturePad: React.FC<SignaturePadProps> = ({ onSignatureChange, signatur
           }).filter(p => p.path);
           if (parsedPaths.length > 0) {
             setPaths(parsedPaths);
+            currentPathRef.current = [];
           }
         }
       } catch (e) {
