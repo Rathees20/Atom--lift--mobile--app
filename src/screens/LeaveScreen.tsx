@@ -53,6 +53,7 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
   const [tempFromDate, setTempFromDate] = useState<Date>(new Date());
   const [tempToDate, setTempToDate] = useState<Date>(new Date());
   const [leaveCounts, setLeaveCounts] = useState<LeaveCountsResponse | null>(null);
+  const [reasonError, setReasonError] = useState<string>('');
 
   useEffect(() => {
     fetchLeaveTypes();
@@ -142,6 +143,12 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
         updated.toDate = value as string;
       }
       
+      if (field === 'reason' && typeof value === 'string') {
+        if (reasonError && value.trim()) {
+          setReasonError('');
+        }
+      }
+
       return updated;
     });
   };
@@ -212,9 +219,11 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
       return false;
     }
     if (!formData.reason.trim()) {
+      setReasonError('Reason is required');
       showErrorAlert('Please enter a reason for leave');
       return false;
     }
+    setReasonError('');
     return true;
   };
 
@@ -744,9 +753,14 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
 
         {/* Reason Field */}
         <View style={globalStyles.leaveFieldContainer}>
-          <Text style={globalStyles.leaveFieldLabel}>Reason</Text>
+          <Text style={globalStyles.leaveFieldLabel}>
+            Reason <Text style={{ color: '#e74c3c' }}>*</Text>
+          </Text>
           <TextInput
-            style={globalStyles.leaveTextInput}
+            style={[
+              globalStyles.leaveTextInput,
+              reasonError ? { borderColor: '#e74c3c' } : null
+            ]}
             placeholder="Enter reason for leave"
             value={formData.reason}
             onChangeText={(value) => handleInputChange('reason', value)}
@@ -754,6 +768,11 @@ const LeaveScreen: React.FC<LeaveScreenProps> = ({ onBack, onApplyLeave, editing
             numberOfLines={3}
             textAlignVertical="top"
           />
+          {reasonError ? (
+            <Text style={{ color: '#e74c3c', fontSize: 12, marginTop: 4 }}>
+              {reasonError}
+            </Text>
+          ) : null}
         </View>
 
         {/* Apply Leave Button */}
