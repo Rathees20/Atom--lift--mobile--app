@@ -8,6 +8,7 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
@@ -86,45 +87,61 @@ const LeaveDetailsScreen: React.FC<LeaveDetailsScreenProps> = ({ leave, onBack, 
     }
   };
 
-  const handleDelete = (): void => {
-    if (leave.status === 'pending') {
-      Alert.alert('Delete Leave', 'Are you sure you want to delete this leave request?', [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            setLoading(true);
-            try {
-              const result = await deleteLeave(leave.id);
-              if (result.success) {
-                Alert.alert('Success', result.message || 'Leave deleted successfully', [
-                  {
-                    text: 'OK',
-                    onPress: () => {
-                      if (onDelete) {
-                        onDelete();
-                      } else {
-                        onBack();
-                      }
-                    },
-                  },
-                ]);
-              } else {
-                Alert.alert('Error', result.message || 'Failed to delete leave');
-              }
-            } catch (error: any) {
-              console.error('Error deleting leave:', error);
-              Alert.alert('Error', error.message || 'Failed to delete leave. Please try again.');
-            } finally {
-              setLoading(false);
-            }
-          },
-        },
-      ]);
-    } else {
-      Alert.alert('Cannot Delete', 'Only pending leave requests can be deleted.');
+  const completeDelete = async (): Promise<void> => {
+    setLoading(true);
+    try {
+      const result = await deleteLeave(leave.id);
+      if (result.success) {
+        const handleSuccess = () => {
+          if (onDelete) {
+            onDelete();
+          } else {
+            onBack();
+          }
+        };
+
+        if (Platform.OS === 'web') {
+          handleSuccess();
+        } else {
+          Alert.alert('Success', result.message || 'Leave deleted successfully', [
+            { text: 'OK', onPress: handleSuccess },
+          ]);
+        }
+      } else {
+        Alert.alert('Error', result.message || 'Failed to delete leave');
+      }
+    } catch (error: any) {
+      console.error('Error deleting leave:', error);
+      Alert.alert('Error', error.message || 'Failed to delete leave. Please try again.');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleDelete = (): void => {
+    if (leave.status !== 'pending') {
+      Alert.alert('Cannot Delete', 'Only pending leave requests can be deleted.');
+      return;
+    }
+
+    if (Platform.OS === 'web') {
+      const confirmed = typeof window !== 'undefined' && window.confirm('Are you sure you want to delete this leave request?');
+      if (confirmed) {
+        void completeDelete();
+      }
+      return;
+    }
+
+    Alert.alert('Delete Leave', 'Are you sure you want to delete this leave request?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          void completeDelete();
+        },
+      },
+    ]);
   };
 
   const canEditOrDelete = leave.status === 'pending';
