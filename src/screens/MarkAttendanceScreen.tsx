@@ -33,6 +33,7 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
   const [hasCheckedIn, setHasCheckedIn] = useState<boolean>(false);
   const [hasCheckedOut, setHasCheckedOut] = useState<boolean>(false);
   const [isLoadingStatus, setIsLoadingStatus] = useState<boolean>(true);
+  const [cameraRatio, setCameraRatio] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     // Request camera permission on component mount
@@ -106,8 +107,33 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
   };
 
 
-  const toggleCameraFacing = () => {
+  const prepareCameraRatio = async (): Promise<void> => {
+    if (!cameraRef || Platform.OS !== 'android') {
+      return;
+    }
+
+    try {
+      const ratios = await cameraRef.getSupportedRatiosAsync();
+      if (!ratios || ratios.length === 0) {
+        return;
+      }
+
+      const preferredRatio = ratios.find((ratio: string) => ratio === '16:9') || ratios[ratios.length - 1];
+      setCameraRatio(preferredRatio);
+    } catch (error) {
+      console.warn('Failed to fetch camera ratios:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (showCamera) {
+      prepareCameraRatio();
+    }
+  }, [showCamera, facing, cameraRef]);
+
+  const toggleCameraFacing = async (): Promise<void> => {
     setFacing(current => (current === CameraType.back ? CameraType.front : CameraType.back));
+    await prepareCameraRatio();
   };
 
   const handleCheckIn = async (): Promise<void> => {
@@ -303,9 +329,11 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
         <View style={globalStyles.markAttendanceCameraPreview}>
           {showCamera && permission?.granted ? (
             <Camera
+              key={facing}
               style={{ flex: 1 }}
               type={facing}
               ref={(ref) => setCameraRef(ref)}
+              ratio={cameraRatio}
             >
               <View style={{
                 flex: 1,
