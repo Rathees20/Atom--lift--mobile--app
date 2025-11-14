@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -28,7 +28,8 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
   const [permission, requestPermission] = Camera.useCameraPermissions();
   const [facing, setFacing] = useState<CameraType>(CameraType.front);
   const [showCamera, setShowCamera] = useState<boolean>(false);
-  const [cameraRef, setCameraRef] = useState<any>(null);
+  const cameraRef = useRef<Camera | null>(null);
+  const [isCameraReady, setIsCameraReady] = useState<boolean>(false);
   const [todayAttendance, setTodayAttendance] = useState<AttendanceRecord | null>(null);
   const [hasCheckedIn, setHasCheckedIn] = useState<boolean>(false);
   const [hasCheckedOut, setHasCheckedOut] = useState<boolean>(false);
@@ -81,10 +82,10 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
   };
 
   const handleCaptureSelfie = async (): Promise<void> => {
-    if (cameraRef) {
+    if (cameraRef.current) {
       try {
         console.log('Capturing selfie...');
-        const photo = await cameraRef.takePictureAsync({
+        const photo = await cameraRef.current.takePictureAsync({
           quality: 0.7,
           base64: false,
         });
@@ -107,13 +108,13 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
   };
 
 
-  const prepareCameraRatio = async (): Promise<void> => {
-    if (!cameraRef || Platform.OS !== 'android') {
+  const prepareCameraRatio = useCallback(async (): Promise<void> => {
+    if (!cameraRef.current || Platform.OS !== 'android') {
       return;
     }
 
     try {
-      const ratios = await cameraRef.getSupportedRatiosAsync();
+      const ratios = await cameraRef.current.getSupportedRatiosAsync();
       if (!ratios || ratios.length === 0) {
         return;
       }
@@ -123,17 +124,23 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
     } catch (error) {
       console.warn('Failed to fetch camera ratios:', error);
     }
-  };
+  }, []);
+
+  const handleCameraReady = useCallback(() => {
+    setIsCameraReady(true);
+    prepareCameraRatio();
+  }, [prepareCameraRatio]);
 
   useEffect(() => {
-    if (showCamera) {
+    if (showCamera && isCameraReady) {
       prepareCameraRatio();
     }
-  }, [showCamera, facing, cameraRef]);
+  }, [showCamera, facing, isCameraReady, prepareCameraRatio]);
 
-  const toggleCameraFacing = async (): Promise<void> => {
+  const toggleCameraFacing = (): void => {
+    setIsCameraReady(false);
+    setCameraRatio(undefined);
     setFacing(current => (current === CameraType.back ? CameraType.front : CameraType.back));
-    await prepareCameraRatio();
   };
 
   const handleCheckIn = async (): Promise<void> => {
@@ -332,8 +339,9 @@ const MarkAttendanceScreen: React.FC<MarkAttendanceScreenProps> = ({ onBack }) =
               key={facing}
               style={{ flex: 1 }}
               type={facing}
-              ref={(ref) => setCameraRef(ref)}
+              ref={cameraRef}
               ratio={cameraRatio}
+              onCameraReady={handleCameraReady}
             >
               <View style={{
                 flex: 1,
