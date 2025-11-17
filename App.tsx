@@ -12,13 +12,17 @@ export default function App() {
   const [mobileNumber, setMobileNumber] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  // App runs 24/7 - session persists indefinitely until explicit logout
   // Check for existing authentication on app startup
+  // This ensures the app maintains login state even after app restarts
   useEffect(() => {
     const checkExistingAuth = async () => {
       try {
         const token = await getAuthToken();
         const userData = await getUserData();
 
+        // If token and user data exist, restore the session
+        // This allows the app to work 24/7 without requiring re-login
         if (token && userData) {
           // Extract mobile number from user data (assuming it has phone_number or mobile field)
           const mobile = userData.phone_number || userData.mobile || userData.phone || '';
@@ -27,6 +31,8 @@ export default function App() {
         }
       } catch (error) {
         console.error('Error checking existing auth:', error);
+        // Don't clear session on error - app should continue working
+        // Only explicit logout should clear the session
       } finally {
         setIsLoading(false);
       }
@@ -42,14 +48,18 @@ export default function App() {
     setIsLoggedIn(true);
   };
 
+  // Only explicit logout clears the session
+  // App works 24/7 and maintains session until user explicitly logs out
   const handleLogout = async () => {
     try {
       await logout();
     } catch (error) {
       console.error('Error during logout:', error);
     }
+    // Clear all session data only on explicit logout
     setMobileNumber('');
     setIsLoggedIn(false);
+    // Session is now cleared - user will need to login again
   };
 
   if (isLoading) {

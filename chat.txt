@@ -1,0 +1,21 @@
+2025-11-15 09:45 UTC
+- Key topics: removed Customers and AMC shortcuts from home screen; noted missing prior chat log.
+- Code changes: updated `src/screens/HomeScreen.tsx` menu items and handler.
+- Decisions: keep other navigation paths intact; create `chat.txt` for logging going forward.
+- Next steps: verify home UI manually; confirm if additional screens should be hidden elsewhere.
+2025-11-15 09:55 UTC
+- Key topics: removed Add Customer and Create AMC access from home drawer and navigation.
+- Code changes: updated `src/screens/HomeScreen.tsx`, `src/components/CustomDrawer.tsx`, and `types/index.ts`.
+- Decisions: leave screens in codebase but unreachable from home UI; drawer no longer shows those options.
+- Next steps: manual UI verification to ensure buttons are gone; decide later if screens/routes should be deleted entirely.
+2025-11-15 10:05 UTC
+- Key topics: deleted AddCustomer and CreateAMCScreen components per request.
+- Code changes: removed `src/screens/AddCustomerScreen.tsx` and `src/screens/CreateAMCScreen.tsx`.
+- Decisions: no other references remained after earlier cleanup.
+- Next steps: confirm app builds without those screens; remove related assets if no longer needed later.
+2025-11-15 10:15 UTC
+- Key topics: removed Customers and AMC list screens entirely.
+- Code changes: deleted `src/screens/CustomersScreen.tsx`, `src/screens/AMCListScreen.tsx`, and cleaned `HomeScreen.tsx` state/handlers.
+- Decisions: keep other modules unchanged; assets still present for potential reuse.
+- Next steps: build/test app to ensure no runtime references remain; optionally delete unused assets later.
+

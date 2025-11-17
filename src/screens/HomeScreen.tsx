@@ -22,16 +22,12 @@ import LeaveScreen from './LeaveScreen';
 import LeaveDetailsScreen from './LeaveDetailsScreen';
 import TravellingListScreen from './TravellingListScreen';
 import TravellingScreen from './TravellingScreen';
-import AddCustomerScreen from './AddCustomerScreen';
-import CreateAMCScreen from './CreateAMCScreen';
 import ViewAttendanceScreen from './ViewAttendanceScreen';
 import RoutineMaintenanceScreen from './RoutineMaintenanceScreen';
 import TodayServicesScreen from './TodayServicesScreen';
 import ThisMonthDueScreen from './ThisMonthDueScreen';
 import ThisMonthOverdueScreen from './ThisMonthOverdueScreen';
 import LastMonthOverdueScreen from './LastMonthOverdueScreen';
-import AMCListScreen from './AMCListScreen';
-import CustomersScreen from './CustomersScreen';
 import TicketsScreen from './TicketsScreen';
 import ComplaintDetailsScreen from './ComplaintDetailsScreen';
 import MarkAttendanceScreen from './MarkAttendanceScreen';
@@ -49,16 +45,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
   const [editingLeave, setEditingLeave] = useState<any>(null);
   const [showTravellingListScreen, setShowTravellingListScreen] = useState<boolean>(false);
   const [showTravellingScreen, setShowTravellingScreen] = useState<boolean>(false);
-  const [showAddCustomerScreen, setShowAddCustomerScreen] = useState<boolean>(false);
-  const [showCreateAMCScreen, setShowCreateAMCScreen] = useState<boolean>(false);
   const [showViewAttendanceScreen, setShowViewAttendanceScreen] = useState<boolean>(false);
   const [showRoutineMaintenanceScreen, setShowRoutineMaintenanceScreen] = useState<boolean>(false);
   const [showTodayServicesScreen, setShowTodayServicesScreen] = useState<boolean>(false);
   const [showThisMonthDueScreen, setShowThisMonthDueScreen] = useState<boolean>(false);
   const [showThisMonthOverdueScreen, setShowThisMonthOverdueScreen] = useState<boolean>(false);
   const [showLastMonthOverdueScreen, setShowLastMonthOverdueScreen] = useState<boolean>(false);
-  const [showAMCListScreen, setShowAMCListScreen] = useState<boolean>(false);
-  const [showCustomersScreen, setShowCustomersScreen] = useState<boolean>(false);
   const [showTicketsScreen, setShowTicketsScreen] = useState<boolean>(false);
   const [showComplaintDetailsScreen, setShowComplaintDetailsScreen] = useState<boolean>(false);
   const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
@@ -81,16 +73,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
         showLeaveDetailsScreen,
         showTravellingListScreen,
         showTravellingScreen,
-        showAddCustomerScreen,
-        showCreateAMCScreen,
         showViewAttendanceScreen,
         showRoutineMaintenanceScreen,
         showTodayServicesScreen,
         showThisMonthDueScreen,
         showThisMonthOverdueScreen,
         showLastMonthOverdueScreen,
-        showAMCListScreen,
-        showCustomersScreen,
         showTicketsScreen,
         showComplaintDetailsScreen,
         showMarkAttendanceScreen,
@@ -114,16 +102,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
         setShowLeaveDetailsScreen(navigationState.showLeaveDetailsScreen || false);
         setShowTravellingListScreen(navigationState.showTravellingListScreen || false);
         setShowTravellingScreen(navigationState.showTravellingScreen || false);
-        setShowAddCustomerScreen(navigationState.showAddCustomerScreen || false);
-        setShowCreateAMCScreen(navigationState.showCreateAMCScreen || false);
         setShowViewAttendanceScreen(navigationState.showViewAttendanceScreen || false);
         setShowRoutineMaintenanceScreen(navigationState.showRoutineMaintenanceScreen || false);
         setShowTodayServicesScreen(navigationState.showTodayServicesScreen || false);
         setShowThisMonthDueScreen(navigationState.showThisMonthDueScreen || false);
         setShowThisMonthOverdueScreen(navigationState.showThisMonthOverdueScreen || false);
         setShowLastMonthOverdueScreen(navigationState.showLastMonthOverdueScreen || false);
-        setShowAMCListScreen(navigationState.showAMCListScreen || false);
-        setShowCustomersScreen(navigationState.showCustomersScreen || false);
         setShowTicketsScreen(navigationState.showTicketsScreen || false);
         setShowComplaintDetailsScreen(navigationState.showComplaintDetailsScreen || false);
         setShowMarkAttendanceScreen(navigationState.showMarkAttendanceScreen || false);
@@ -149,16 +133,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
     showLeaveDetailsScreen,
     showTravellingListScreen,
     showTravellingScreen,
-    showAddCustomerScreen,
-    showCreateAMCScreen,
     showViewAttendanceScreen,
     showRoutineMaintenanceScreen,
     showTodayServicesScreen,
     showThisMonthDueScreen,
     showThisMonthOverdueScreen,
     showLastMonthOverdueScreen,
-    showAMCListScreen,
-    showCustomersScreen,
     showTicketsScreen,
     showComplaintDetailsScreen,
     showMarkAttendanceScreen,
@@ -177,18 +157,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
       imageSource: require('../assets/Routine service.png'),
       color: '#3498db',
     },
-    {
-      id: 3,
-      title: 'Customers',
-      imageSource: require('../assets/customer.png'),
-      color: '#3498db',
-    },
-    {
-      id: 4,
-      title: 'AMC',
-      imageSource: require('../assets/Amc list.png'),
-      color: '#9b59b6',
-    },
   ];
 
   const handleMenuPress = (item: MenuItem): void => {
@@ -197,10 +165,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
       setShowTicketsScreen(true);
     } else if (item.title === 'Routine Services') {
       setShowRoutineMaintenanceScreen(true);
-    } else if (item.title === 'AMC') {
-      setShowAMCListScreen(true);
-    } else if (item.title === 'Customers') {
-      setShowCustomersScreen(true);
     }
     // Add navigation logic for other menu items here
   };
@@ -343,32 +307,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
     setShowTravellingListScreen(false); // Go back to home after applying
   };
 
-  const handleNavigateToAddCustomer = (): void => {
-    setShowAddCustomerScreen(true);
-  };
-
-  const handleBackFromAddCustomer = (): void => {
-    setShowAddCustomerScreen(false);
-  };
-
-  const handleSaveCustomer = (): void => {
-    console.log('Customer saved successfully');
-    setShowAddCustomerScreen(false);
-  };
-
-  const handleNavigateToCreateAMC = (): void => {
-    setShowCreateAMCScreen(true);
-  };
-
-  const handleBackFromCreateAMC = (): void => {
-    setShowCreateAMCScreen(false);
-  };
-
-  const handleSaveAMC = (): void => {
-    console.log('AMC created successfully');
-    setShowCreateAMCScreen(false);
-  };
-
   const handleNavigateToViewAttendance = (): void => {
     setShowViewAttendanceScreen(true);
   };
@@ -419,16 +357,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
   const handleBackFromLastMonthOverdue = (): void => {
     setShowLastMonthOverdueScreen(false);
     setShowRoutineMaintenanceScreen(true);
-  };
-
-  const handleBackFromAMCList = (): void => {
-    setShowAMCListScreen(false);
-  };
-
-
-
-  const handleBackFromCustomers = (): void => {
-    setShowCustomersScreen(false);
   };
 
   const handleBackFromTickets = (): void => {
@@ -545,26 +473,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
     );
   }
 
-  // Show add customer screen if needed
-  if (showAddCustomerScreen) {
-    return (
-      <AddCustomerScreen
-        onBack={handleBackFromAddCustomer}
-        onSave={handleSaveCustomer}
-      />
-    );
-  }
-
-  // Show create AMC screen if needed
-  if (showCreateAMCScreen) {
-    return (
-      <CreateAMCScreen
-        onBack={handleBackFromCreateAMC}
-        onSave={handleSaveAMC}
-      />
-    );
-  }
-
   // Show view attendance screen if needed
   if (showViewAttendanceScreen) {
     return (
@@ -583,24 +491,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
         onNavigateToThisMonthDue={handleNavigateToThisMonthDue}
         onNavigateToThisMonthOverdue={handleNavigateToThisMonthOverdue}
         onNavigateToLastMonthOverdue={handleNavigateToLastMonthOverdue}
-      />
-    );
-  }
-
-  // Show AMC list screen if needed
-  if (showAMCListScreen) {
-    return (
-      <AMCListScreen
-        onBack={handleBackFromAMCList}
-      />
-    );
-  }
-
-  // Show customers screen if needed
-  if (showCustomersScreen) {
-    return (
-      <CustomersScreen
-        onBack={handleBackFromCustomers}
       />
     );
   }
@@ -750,8 +640,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLogout, mobileNumber }) => {
               onNavigateToMaterialRequisition={handleNavigateToMaterialRequisition}
               onNavigateToLeave={handleNavigateToLeave}
               onNavigateToTravelling={handleNavigateToTravelling}
-              onNavigateToAddCustomer={handleNavigateToAddCustomer}
-              onNavigateToCreateAMC={handleNavigateToCreateAMC}
               onNavigateToViewAttendance={handleNavigateToViewAttendance}
               onShowTips={handleShowTips}
               mobileNumber={mobileNumber}

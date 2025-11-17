@@ -4,6 +4,7 @@ const API_BASE_URL = 'https://atomlift.technuob.com';
 
 // API endpoints
 export const API_ENDPOINTS = {
+  LOGIN: `${API_BASE_URL}/auth/api/mobile/login/`,
   GENERATE_OTP: `${API_BASE_URL}/auth/api/mobile/generate-otp/`,
   VERIFY_OTP: `${API_BASE_URL}/auth/api/mobile/verify-otp/`,
   RESEND_OTP: `${API_BASE_URL}/auth/api/mobile/resend-otp/`,
@@ -142,6 +143,12 @@ export interface VerifyOTPResponse {
   message: string;
 }
 
+export interface LoginResponse {
+  user: any;
+  token: string;
+  message?: string;
+}
+
 export interface ErrorResponse {
   error: string;
 }
@@ -187,6 +194,64 @@ export interface ComplaintItem {
 }
 
 // API functions
+export const login = async (
+  usernameOrEmail: string,
+  password: string
+): Promise<LoginResponse> => {
+  // Determine if input is email or phone number
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(usernameOrEmail.trim());
+  const isPhone = /^\d{10}$/.test(usernameOrEmail.replace(/\D/g, ''));
+  
+  // Build request body based on input type
+  let body: any = { password };
+  
+  if (isEmail) {
+    body.email = usernameOrEmail.trim();
+  } else if (isPhone) {
+    body.phone_number = usernameOrEmail.replace(/\D/g, '');
+  } else {
+    // If neither email nor phone, try as email (many APIs accept username in email field)
+    body.email = usernameOrEmail.trim();
+  }
+
+  const response = await fetch(API_ENDPOINTS.LOGIN, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    let errorMessage = 'Login failed';
+    try {
+      const error: ErrorResponse = await response.json();
+      errorMessage = error.error || errorMessage;
+    } catch (e) {
+      // If response is not JSON, try to get text
+      try {
+        const text = await response.text();
+        if (text) errorMessage = text;
+      } catch (e2) {
+        // Ignore
+      }
+    }
+    throw new Error(errorMessage);
+  }
+
+  const result = await response.json();
+
+  // Store the token and user data for future authenticated requests
+  if (result.token) {
+    await setAuthToken(result.token);
+  }
+  if (result.user) {
+    await setUserData(result.user);
+  }
+
+  return result;
+};
+
 export const generateOTP = async (
   contact: string,
   method: 'email' | 'phone'
@@ -271,6 +336,8 @@ export const resendOTP = async (
 };
 
 // Get logged-in user details from API
+// Note: API errors (including 401 unauthorized) do NOT trigger automatic logout
+// The app works 24/7 and only explicit logout clears the session
 export const fetchUserDetails = async (): Promise<UserDetails> => {
   const token = await getAuthToken();
   if (!token) {
@@ -287,6 +354,8 @@ export const fetchUserDetails = async (): Promise<UserDetails> => {
 
   if (!response.ok) {
     const error: ErrorResponse = await response.json();
+    // Don't clear session on error - just throw the error
+    // Session persists until explicit logout
     throw new Error(error.error || 'Failed to fetch user details');
   }
 
@@ -335,6 +404,9 @@ export const getAssignedComplaints = async (): Promise<ComplaintItem[]> => {
   return response.json();
 };
 
+// Logout function - This is the ONLY way to clear the session
+// App works 24/7 and maintains session until user explicitly calls this function
+// API errors do NOT trigger logout - only explicit user action does
 export const logout = async (): Promise<void> => {
   const token = await getAuthToken();
   if (token) {
@@ -350,6 +422,7 @@ export const logout = async (): Promise<void> => {
       console.warn('Logout API call failed, but clearing local token anyway:', error);
     }
   }
+  // Clear all session data - this is the only way to end the session
   await clearAuthToken();
   await clearUserData();
 };

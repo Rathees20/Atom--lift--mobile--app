@@ -32,8 +32,6 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
     onNavigateToMaterialRequisition, 
     onNavigateToLeave, 
     onNavigateToTravelling, 
-    onNavigateToAddCustomer, 
-    onNavigateToCreateAMC, 
     onNavigateToViewAttendance, 
     onShowTips, 
     mobileNumber 
@@ -102,18 +100,6 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
     },
     {
       id: 5,
-      title: 'Add Customer',
-      image: require('../assets/add customer.png'),
-      color: '#e74c3c',
-    },
-    {
-      id: 6,
-      title: 'Create AMC',
-      image: require('../assets/Create Amc.png'),
-      color: '#f39c12',
-    },
-    {
-      id: 7,
       title: 'View Attendance',
       image: require('../assets/View attendence.png'),
       color: '#2ecc71',
@@ -130,10 +116,6 @@ const CustomDrawer: React.FC<CustomDrawerProps> = (props) => {
       onNavigateToLeave();
     } else if (item.title === 'Travelling') {
       onNavigateToTravelling();
-    } else if (item.title === 'Add Customer') {
-      onNavigateToAddCustomer();
-    } else if (item.title === 'Create AMC') {
-      onNavigateToCreateAMC();
     } else if (item.title === 'View Attendance') {
       onNavigateToViewAttendance();
     } else if (item.title === 'App Tips') {

@@ -104,8 +104,6 @@ export interface CustomDrawerProps {
   onNavigateToMaterialRequisition: () => void;
   onNavigateToLeave: () => void;
   onNavigateToTravelling: () => void;
-  onNavigateToAddCustomer: () => void;
-  onNavigateToCreateAMC: () => void;
   onNavigateToViewAttendance: () => void;
   onShowTips: () => void;
   mobileNumber?: string;
