@@ -7,9 +7,12 @@ import {
   ScrollView,
   StatusBar,
   Modal,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
+import { getRoutineServices, RoutineServiceItem } from '../utils/api';
 
 interface RoutineMaintenanceScreenProps {
   onBack: () => void;
@@ -39,6 +42,8 @@ const RoutineMaintenanceScreen: React.FC<RoutineMaintenanceScreenProps> = ({
   const [selectedTimeFrame, setSelectedTimeFrame] = useState<string>('');
   const [showStatusDropdown, setShowStatusDropdown] = useState<boolean>(false);
   const [showTimeFrameDropdown, setShowTimeFrameDropdown] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [filteredServices, setFilteredServices] = useState<RoutineServiceItem[]>([]);
 
   // Filter options
   const statusOptions = ['all', 'due', 'overdue', 'in_process', 'completed'];
@@ -57,6 +62,93 @@ const RoutineMaintenanceScreen: React.FC<RoutineMaintenanceScreenProps> = ({
   const formatStatusDisplay = (status: string): string => {
     if (!status) return '';
     return status; // Display exactly as in the image
+  };
+
+  // Convert time frame option to API parameters
+  const getTimeFrameParams = (timeFrame: string): { start_date?: string; end_date?: string; date?: string } => {
+    const today = new Date();
+    const params: { start_date?: string; end_date?: string; date?: string } = {};
+
+    switch (timeFrame) {
+      case 'All':
+        return {};
+      case 'Previous Day':
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        params.date = yesterday.toISOString().split('T')[0];
+        break;
+      case 'Next 3 days':
+        params.start_date = today.toISOString().split('T')[0];
+        const next3Days = new Date(today);
+        next3Days.setDate(next3Days.getDate() + 3);
+        params.end_date = next3Days.toISOString().split('T')[0];
+        break;
+      case 'Next 7 days':
+        params.start_date = today.toISOString().split('T')[0];
+        const next7Days = new Date(today);
+        next7Days.setDate(next7Days.getDate() + 7);
+        params.end_date = next7Days.toISOString().split('T')[0];
+        break;
+      case 'Next 15 days':
+        params.start_date = today.toISOString().split('T')[0];
+        const next15Days = new Date(today);
+        next15Days.setDate(next15Days.getDate() + 15);
+        params.end_date = next15Days.toISOString().split('T')[0];
+        break;
+      case 'Next 30 days':
+        params.start_date = today.toISOString().split('T')[0];
+        const next30Days = new Date(today);
+        next30Days.setDate(next30Days.getDate() + 30);
+        params.end_date = next30Days.toISOString().split('T')[0];
+        break;
+      case 'Next 45 days':
+        params.start_date = today.toISOString().split('T')[0];
+        const next45Days = new Date(today);
+        next45Days.setDate(next45Days.getDate() + 45);
+        params.end_date = next45Days.toISOString().split('T')[0];
+        break;
+      default:
+        return {};
+    }
+    return params;
+  };
+
+  // Handle filter search
+  const handleFilterSearch = async (): Promise<void> => {
+    setIsLoading(true);
+    try {
+      const timeFrameParams = selectedTimeFrame ? getTimeFrameParams(selectedTimeFrame) : {};
+      
+      const apiParams: any = {
+        ...timeFrameParams,
+      };
+
+      // Add status filter if selected (skip 'all')
+      if (selectedStatus && selectedStatus !== 'all') {
+        apiParams.status = selectedStatus;
+      }
+
+      // Add 'for' parameter if time frame is selected
+      if (selectedTimeFrame && selectedTimeFrame !== 'All') {
+        apiParams.for = selectedTimeFrame.toLowerCase().replace(/\s+/g, '_');
+      }
+
+      console.log('Fetching routine services with params:', apiParams);
+      const services = await getRoutineServices(apiParams);
+      setFilteredServices(services);
+      
+      setShowFilterModal(false);
+      Alert.alert(
+        'Filter Applied',
+        `Found ${services.length} routine service(s) matching your criteria.`,
+        [{ text: 'OK' }]
+      );
+    } catch (error: any) {
+      console.error('Error fetching routine services:', error);
+      Alert.alert('Error', error.message || 'Failed to fetch routine services. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const maintenanceItems: MaintenanceItem[] = [
@@ -382,7 +474,7 @@ const RoutineMaintenanceScreen: React.FC<RoutineMaintenanceScreenProps> = ({
             {/* Search Button */}
             <TouchableOpacity
               style={{
-                backgroundColor: '#3498db',
+                backgroundColor: isLoading ? '#95a5a6' : '#3498db',
                 borderRadius: 8,
                 paddingVertical: 16,
                 alignItems: 'center',
@@ -392,21 +484,21 @@ const RoutineMaintenanceScreen: React.FC<RoutineMaintenanceScreenProps> = ({
                 shadowRadius: 8,
                 elevation: 4,
               }}
-              onPress={() => {
-                // Handle search/filter logic here
-                console.log('Filter applied:', { status: selectedStatus, timeFrame: selectedTimeFrame });
-                setShowFilterModal(false);
-                // You can add your filter logic here
-              }}
+              onPress={handleFilterSearch}
+              disabled={isLoading}
             >
-              <Text style={{
-                color: '#fff',
-                fontSize: 16,
-                fontWeight: 'bold',
-                letterSpacing: 1,
-              }}>
-                SEARCH
-              </Text>
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={{
+                  color: '#fff',
+                  fontSize: 16,
+                  fontWeight: 'bold',
+                  letterSpacing: 1,
+                }}>
+                  SEARCH
+                </Text>
+              )}
             </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>

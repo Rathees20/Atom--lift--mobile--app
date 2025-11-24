@@ -23,6 +23,7 @@ export const API_ENDPOINTS = {
   AMC_CREATE: `${API_BASE_URL}/amc/api/amc/create/`,
   AMC_TYPES: `${API_BASE_URL}/amc/api/amc/types/list/`,
   AMC_TYPE_CREATE: `${API_BASE_URL}/amc/api/amc/types/create/`,
+  ROUTINE_SERVICES_EMPLOYEE: `${API_BASE_URL}/amc/api/amc/routine-services/employee/`,
   // Customer endpoints
   CUSTOMER_LIST: `${API_BASE_URL}/customer/api/customer/list/`,
   CUSTOMER_CREATE: `${API_BASE_URL}/customer/api/customer/create/`,
@@ -831,6 +832,82 @@ export const createAMCType = async (amcTypeData: { name: string }): Promise<{ su
   }
 
   return response.json();
+};
+
+// Routine Services interfaces and API functions
+export interface RoutineServiceItem {
+  id: number;
+  amc?: number;
+  amc_detail?: AMCItem;
+  service_date?: string;
+  service_date_display?: string;
+  status?: string;
+  status_display?: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: any; // Allow for additional fields
+}
+
+export const getRoutineServices = async (params?: {
+  status?: string;
+  for?: string;
+  date?: string;
+  start_date?: string;
+  end_date?: string;
+  page?: number;
+  page_size?: number;
+}): Promise<RoutineServiceItem[]> => {
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error('No authentication token available');
+  }
+
+  const queryParams = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        queryParams.append(key, value.toString());
+      }
+    });
+  }
+
+  const url = `${API_ENDPOINTS.ROUTINE_SERVICES_EMPLOYEE}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Token ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error: ErrorResponse = await response.json();
+    throw new Error(error.error || 'Failed to fetch routine services');
+  }
+
+  const data = await response.json();
+  console.log('Routine services API returned data:', data);
+
+  // Handle paginated response structure
+  if (data.results && Array.isArray(data.results)) {
+    return data.results;
+  }
+
+  // Fallback for direct array response
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  // Handle nested structure
+  if (data.routine_services && Array.isArray(data.routine_services)) {
+    return data.routine_services;
+  }
+
+  // Fallback
+  console.warn('Unexpected routine services response structure:', data);
+  return [];
 };
 
 // Material Request interface and API functions
