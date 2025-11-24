@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
 import { getRoutineServices, RoutineServiceItem } from '../utils/api';
+import ServiceDetailsScreen from './ServiceDetailsScreen';
 
 interface ThisMonthDueScreenProps {
   onBack: () => void;
@@ -20,6 +21,7 @@ const ThisMonthDueScreen: React.FC<ThisMonthDueScreenProps> = ({ onBack }) => {
   const [services, setServices] = useState<RoutineServiceItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedService, setSelectedService] = useState<RoutineServiceItem | null>(null);
 
   useEffect(() => {
     fetchThisMonthDue();
@@ -71,6 +73,19 @@ const ThisMonthDueScreen: React.FC<ThisMonthDueScreenProps> = ({ onBack }) => {
     return '#7f8c8d';
   };
 
+  const handleServicePress = (service: RoutineServiceItem): void => {
+    setSelectedService(service);
+  };
+
+  const handleBackFromDetails = (): void => {
+    setSelectedService(null);
+  };
+
+  // Show service details screen if a service is selected
+  if (selectedService) {
+    return <ServiceDetailsScreen service={selectedService} onBack={handleBackFromDetails} />;
+  }
+
   return (
     <SafeAreaView style={globalStyles.routineMaintenanceContainer}>
       <StatusBar barStyle="light-content" backgroundColor="#3498db" />
@@ -120,7 +135,12 @@ const ThisMonthDueScreen: React.FC<ThisMonthDueScreenProps> = ({ onBack }) => {
           </View>
         ) : (
           services.map((service) => (
-            <View key={service.id} style={globalStyles.routineMaintenanceItem}>
+            <TouchableOpacity
+              key={service.id}
+              onPress={() => handleServicePress(service)}
+              style={globalStyles.routineMaintenanceItem}
+              activeOpacity={0.7}
+            >
               <View style={globalStyles.routineMaintenanceItemLeft}>
                 <View style={[globalStyles.routineMaintenanceIconContainer, { backgroundColor: getStatusColor(service.status) }]}>
                   <Ionicons name="settings-outline" size={24} color="#fff" />
@@ -149,7 +169,7 @@ const ThisMonthDueScreen: React.FC<ThisMonthDueScreenProps> = ({ onBack }) => {
                 </View>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#2c3e50" />
-            </View>
+            </TouchableOpacity>
           ))
         )}
       </ScrollView>

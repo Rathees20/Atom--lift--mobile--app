@@ -19,3 +19,14 @@
 - Decisions: keep other modules unchanged; assets still present for potential reuse.
 - Next steps: build/test app to ensure no runtime references remain; optionally delete unused assets later.
 
+2025-01-XX (Current Session)
+- Key topics: Added service details functionality to TodayServicesScreen, ThisMonthDueScreen, ThisMonthOverdueScreen, and LastMonthOverdueScreen. Users can now click on service items to view detailed information including customer name and map location.
+- Code changes: 
+  - Created `src/screens/ServiceDetailsScreen.tsx` - new component displaying service details with customer information, AMC details, and map integration
+  - Updated `src/screens/TodayServicesScreen.tsx` - made service items clickable, added navigation to details screen
+  - Updated `src/screens/ThisMonthDueScreen.tsx` - made service items clickable, added navigation to details screen
+  - Updated `src/screens/ThisMonthOverdueScreen.tsx` - made service items clickable, added navigation to details screen
+  - Updated `src/screens/LastMonthOverdueScreen.tsx` - made service items clickable, added navigation to details screen
+- Decisions: ServiceDetailsScreen shows customer name, service information, AMC details, and location with "Open in Maps" button that opens Google Maps. Used conditional rendering to switch between list and details view. All service items are now TouchableOpacity with activeOpacity for better UX.
+- Next steps: Test the implementation to ensure navigation works correctly and map integration functions properly on devices.
+
